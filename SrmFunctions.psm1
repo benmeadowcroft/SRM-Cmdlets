@@ -36,11 +36,24 @@ Function Get-ProtectedVM ($Name, $State, $ProtectionGroup, $ProtectionGroupName)
             if ($Name) {
                 $_.Vm.UpdateViewData()
             }
-            $selected = (-not $Name -or ($Name -eq $_.Vm.Name))
+            $selected = $selected -and (-not $Name -or ($Name -eq $_.Vm.Name))
             $selected = $selected -and (-not $State -or ($State -eq $_.State))
             if ($selected) {
                 $_
             }
+        }
+    }
+}
+
+#Untested as I don't have ABR setup in my lab yet
+Function Get-ProtectedDatastore ($ProtectionGroup, $ProtectionGroupName) {
+    if (-not $ProtectionGroup) {
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName
+    }
+    $ProtectionGroup | % {
+        $pg = $_
+        if ($pg.GetInfo().Type -eq 'san') { # only supported for array based replication datastores
+            $pg.ListProtectedDatastores()
         }
     }
 }
