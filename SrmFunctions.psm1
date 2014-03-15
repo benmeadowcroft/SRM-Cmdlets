@@ -2,10 +2,22 @@
 
 # SRM Helper Methods
 
-Function Get-ProtectionGroup ($Name, $Type) {
+Function Get-ProtectionGroup () {
+    Param(
+        [string] $Name,
+        [string] $Type,
+        [Parameter (ValueFromPipeline=$true)] $RecoveryPlan
+    )
+
     $api = $global:DefaultSrmServers[0].ExtensionData
 
-    $api.Protection.ListProtectionGroups() | % {
+    if ($RecoveryPlan) {
+        $pgs = $RecoveryPlan.GetInfo().ProtectionGroups
+    } else {
+        $pgs = $api.Protection.ListProtectionGroups()
+    }
+
+    $pgs | % {
         $pgi = $_.GetInfo()
         $selected = (-not $Name -or ($Name -eq $pgi.Name)) -and (-not $Type -or ($Type -eq $pgi.Type))
         if ($selected) {
@@ -14,10 +26,21 @@ Function Get-ProtectionGroup ($Name, $Type) {
     }
 }
 
-Function Get-RecoveryPlan ($Name) {
+Function Get-RecoveryPlan () {
+    Param(
+        [string] $Name,
+        [Parameter (ValueFromPipeline=$true)] $ProtectionGroup
+    )
+
     $api = $global:DefaultSrmServers[0].ExtensionData
 
-    $api.Recovery.ListPlans() | % {
+    if($ProtectionGroup) {
+        $rps = $ProtectionGroup.ListRecoveryPlans()
+    } else {
+        $rps = $api.Recovery.ListPlans()
+    }
+
+    $rps | % {
         $rpi = $_.GetInfo()
         $selected = (-not $Name -or ($Name -eq $rpi.Name))
         if ($selected) {
@@ -26,7 +49,14 @@ Function Get-RecoveryPlan ($Name) {
     }
 }
 
-Function Get-ProtectedVM ($Name, $State, $ProtectionGroup, $ProtectionGroupName) {
+Function Get-ProtectedVM () {
+    Param(
+        [string] $Name,
+        [string] $State,
+        [Parameter (ValueFromPipeline=$true)] $ProtectionGroup,
+        [string] $ProtectionGroupName
+    )
+
     if (-not $ProtectionGroup) {
         $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName
     }
@@ -36,6 +66,7 @@ Function Get-ProtectedVM ($Name, $State, $ProtectionGroup, $ProtectionGroupName)
             if ($Name) {
                 $_.Vm.UpdateViewData()
             }
+            $selected = $true
             $selected = $selected -and (-not $Name -or ($Name -eq $_.Vm.Name))
             $selected = $selected -and (-not $State -or ($State -eq $_.State))
             if ($selected) {
@@ -46,7 +77,12 @@ Function Get-ProtectedVM ($Name, $State, $ProtectionGroup, $ProtectionGroupName)
 }
 
 #Untested as I don't have ABR setup in my lab yet
-Function Get-ProtectedDatastore ($ProtectionGroup, $ProtectionGroupName) {
+Function Get-ProtectedDatastore () {
+    Param(
+        [Parameter (ValueFromPipeline=$true)] $ProtectionGroup,
+        [string] $ProtectionGroupName
+    )
+
     if (-not $ProtectionGroup) {
         $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName
     }
@@ -58,7 +94,12 @@ Function Get-ProtectedDatastore ($ProtectionGroup, $ProtectionGroupName) {
     }
 }
 
-Function Protect-VM ($ProtectionGroup, $Vm) {
+Function Protect-VM () {
+    Param(
+        [Parameter (Mandatory=$true)] $ProtectionGroup,
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $Vm
+    )
+
     $pgi = $ProtectionGroup.GetInfo()
     #TODO query protection status first
 
@@ -72,7 +113,12 @@ Function Protect-VM ($ProtectionGroup, $Vm) {
     $protectTask.GetResult()  
 }
 
-Function Unprotect-VM ($ProtectionGroup, $Vm) {
+Function Unprotect-VM () {
+    Param(
+        [Parameter (Mandatory=$true)] $ProtectionGroup,
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $Vm
+    )
+
     $pgi = $ProtectionGroup.GetInfo()
     $protectTask = $ProtectionGroup.UnprotectVms($Vm.ExtensionData.MoRef)
     while(-not $protectTask.IsComplete()) { sleep -Seconds 1 }
