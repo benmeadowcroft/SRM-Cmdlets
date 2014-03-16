@@ -1,5 +1,3 @@
-# Add-PSSnapin Vmware*
-
 # SRM Helper Methods
 
 Function Get-ProtectionGroup () {
@@ -63,9 +61,12 @@ Function Get-ProtectedVM () {
     $ProtectionGroup | % {
         $pg = $_
         $pg.ListProtectedVms() | % {
-            if ($Name) {
+            try {
                 $_.Vm.UpdateViewData()
+            } catch {
+                # silently ignore
             }
+            
             $selected = $true
             $selected = $selected -and (-not $Name -or ($Name -eq $_.Vm.Name))
             $selected = $selected -and (-not $State -or ($State -eq $_.State))
