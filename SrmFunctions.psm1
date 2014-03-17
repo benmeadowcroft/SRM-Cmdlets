@@ -1,25 +1,49 @@
 # SRM Helper Methods
 
+#TODO: make module private
+Function Select-UniqueByMoRef() {
+    Param(
+        [Parameter (ValueFromPipeline=$true)] $in
+    )
+    process {
+        $moref = New-Object System.Collections.ArrayList
+        $in | sort | select MoRef -Unique | %{ $moref.Add($_.MoRef) } > $null
+        $in | %{
+            if ($_.MoRef -in $moref) {
+                $moref.Remove($_.MoRef)
+                $_ #output
+            }
+        }
+    }
+}
+
 Function Get-ProtectionGroup () {
     Param(
         [string] $Name,
         [string] $Type,
         [Parameter (ValueFromPipeline=$true)] $RecoveryPlan
     )
-
-    $api = $global:DefaultSrmServers[0].ExtensionData
-
-    if ($RecoveryPlan) {
-        $pgs = $RecoveryPlan.GetInfo().ProtectionGroups
-    } else {
-        $pgs = $api.Protection.ListProtectionGroups()
+    begin {
+        $api = $global:DefaultSrmServers[0].ExtensionData
+        $pgs = @()
     }
-
-    $pgs | % {
-        $pgi = $_.GetInfo()
-        $selected = (-not $Name -or ($Name -eq $pgi.Name)) -and (-not $Type -or ($Type -eq $pgi.Type))
-        if ($selected) {
-            $_
+    process {
+        if ($RecoveryPlan) {
+            foreach ($rp in $RecoveryPlan) {
+                $pgs += $RecoveryPlan.GetInfo().ProtectionGroups
+            }
+            $pgs = Select-UniqueByMoRef($pgs)
+        } else {
+            $pgs += $api.Protection.ListProtectionGroups()
+        }
+    }
+    end {
+        $pgs | % {
+            $pgi = $_.GetInfo()
+            $selected = (-not $Name -or ($Name -eq $pgi.Name)) -and (-not $Type -or ($Type -eq $pgi.Type))
+            if ($selected) {
+                $_
+            }
         }
     }
 }
@@ -30,19 +54,27 @@ Function Get-RecoveryPlan () {
         [Parameter (ValueFromPipeline=$true)] $ProtectionGroup
     )
 
-    $api = $global:DefaultSrmServers[0].ExtensionData
-
-    if($ProtectionGroup) {
-        $rps = $ProtectionGroup.ListRecoveryPlans()
-    } else {
-        $rps = $api.Recovery.ListPlans()
+    begin {
+        $api = $global:DefaultSrmServers[0].ExtensionData
+        $rps = @()
     }
-
-    $rps | % {
-        $rpi = $_.GetInfo()
-        $selected = (-not $Name -or ($Name -eq $rpi.Name))
-        if ($selected) {
-            $_
+    process {
+        if ($ProtectionGroup) {
+            foreach ($pg in $ProtectionGroup) {
+                $rps += $pg.ListRecoveryPlans()
+            }
+            $rps = Select-UniqueByMoRef($rps)
+        } else {
+            $rps += $api.Recovery.ListPlans()
+        }
+    }
+    end {
+        $rps | % {
+            $rpi = $_.GetInfo()
+            $selected = (-not $Name -or ($Name -eq $rpi.Name))
+            if ($selected) {
+                $_
+            }
         }
     }
 }
@@ -128,3 +160,5 @@ Function Unprotect-VM () {
     }
     $protectTask.GetResult()
 }
+
+#TODO: Export-ModuleMember -function Get-ProtectionGroup, Get-RecoveryPlan, Get-ProtectedVM, Get-ProtectedDatastore, Protect-VM, Unprotect-VM
