@@ -1,3 +1,5 @@
+# Add-PSSnapin Vmware*
+
 # SRM Helper Methods
 
 Function Get-ProtectionGroup () {
