@@ -83,7 +83,7 @@ Get the subset of recovery plans matching the input criteria
 .PARAMETER Name
 Return recovery plans matching the specified name
 
-.PARAMETER $ProtectionGroup
+.PARAMETER ProtectionGroup
 Return recovery plans associated with particular protection
 groups
 #>
@@ -130,7 +130,7 @@ Return protected VMs matching the specified state. For protected
 VMs on the protected site this is usually 'ready', for
 placeholder VMs this is 'shadowing'
 
-.PARAMETER $ProtectionGroup
+.PARAMETER ProtectionGroup
 Return protected VMs associated with particular protection
 groups
 #>
@@ -169,7 +169,7 @@ Function Get-ProtectedVM () {
 .SYNOPSIS
 Get the subset of protected Datastores matching the input criteria
 
-.PARAMETER $ProtectionGroup
+.PARAMETER ProtectionGroup
 Return protected datastores associated with particular protection
 groups
 #>
@@ -195,10 +195,10 @@ Function Get-ProtectedDatastore () {
 .SYNOPSIS
 Protect a VM using SRM
 
-.PARAMETER $ProtectionGroup
+.PARAMETER ProtectionGroup
 The protection group that this VM will belong to
 
-.PARAMETER $Vm
+.PARAMETER Vm
 The virtual machine to protect
 #>
 Function Protect-VM () {
@@ -225,10 +225,10 @@ Function Protect-VM () {
 .SYNOPSIS
 Unprotect a VM using SRM
 
-.PARAMETER $ProtectionGroup
+.PARAMETER ProtectionGroup
 The protection group that this VM will be removed from
 
-.PARAMETER $Vm
+.PARAMETER Vm
 The virtual machine to unprotect
 #>
 Function Unprotect-VM () {
