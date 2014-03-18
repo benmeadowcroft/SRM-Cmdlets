@@ -1,7 +1,16 @@
-# SRM Helper Methods
+# SRM Helper Methods - https://github.com/benmeadowcroft/SRM-Cmdlets
 
-#TODO: make module private
-Function Select-UniqueByMoRef() {
+<#
+.SYNOPSIS
+This is intended to be an "internal" function only. It filters a
+pipelined input of objects and elimiates duplicates as identified
+by the MoRef property on the object.
+
+.LINK
+https://github.com/benmeadowcroft/SRM-Cmdlets/
+#>
+Function Select-UniqueByMoRef() { #TODO: don't export when packaged as a module
+
     Param(
         [Parameter (ValueFromPipeline=$true)] $in
     )
@@ -17,6 +26,23 @@ Function Select-UniqueByMoRef() {
     }
 }
 
+<#
+.SYNOPSIS
+Get the subset of protection groups matching the input criteria
+
+.PARAMETER Name
+Return protection groups matching the specified name
+
+.PARAMETER Type
+Return protection groups matching the specified protection group
+type. For SRM 5.0-5.5 this is either 'san' for protection groups
+consisting of a set of replicated datastores or 'vr' for vSphere
+Replication based protection groups.
+
+.PARAMETER RecoveryPlan
+Return protection groups associated with a particular recovery
+plan
+#>
 Function Get-ProtectionGroup () {
     Param(
         [string] $Name,
@@ -48,6 +74,19 @@ Function Get-ProtectionGroup () {
     }
 }
 
+}
+
+<#
+.SYNOPSIS
+Get the subset of recovery plans matching the input criteria
+
+.PARAMETER Name
+Return recovery plans matching the specified name
+
+.PARAMETER $ProtectionGroup
+Return recovery plans associated with particular protection
+groups
+#>
 Function Get-RecoveryPlan () {
     Param(
         [string] $Name,
@@ -79,6 +118,22 @@ Function Get-RecoveryPlan () {
     }
 }
 
+<#
+.SYNOPSIS
+Get the subset of protected VMs matching the input criteria
+
+.PARAMETER Name
+Return protected VMs matching the specified name
+
+.PARAMETER State
+Return protected VMs matching the specified state. For protected
+VMs on the protected site this is usually 'ready', for
+placeholder VMs this is 'shadowing'
+
+.PARAMETER $ProtectionGroup
+Return protected VMs associated with particular protection
+groups
+#>
 Function Get-ProtectedVM () {
     Param(
         [string] $Name,
@@ -110,6 +165,14 @@ Function Get-ProtectedVM () {
 }
 
 #Untested as I don't have ABR setup in my lab yet
+<#
+.SYNOPSIS
+Get the subset of protected Datastores matching the input criteria
+
+.PARAMETER $ProtectionGroup
+Return protected datastores associated with particular protection
+groups
+#>
 Function Get-ProtectedDatastore () {
     Param(
         [Parameter (ValueFromPipeline=$true)] $ProtectionGroup,
@@ -127,6 +190,17 @@ Function Get-ProtectedDatastore () {
     }
 }
 
+
+<#
+.SYNOPSIS
+Protect a VM using SRM
+
+.PARAMETER $ProtectionGroup
+The protection group that this VM will belong to
+
+.PARAMETER $Vm
+The virtual machine to protect
+#>
 Function Protect-VM () {
     Param(
         [Parameter (Mandatory=$true)] $ProtectionGroup,
@@ -146,6 +220,17 @@ Function Protect-VM () {
     $protectTask.GetResult()  
 }
 
+
+<#
+.SYNOPSIS
+Unprotect a VM using SRM
+
+.PARAMETER $ProtectionGroup
+The protection group that this VM will be removed from
+
+.PARAMETER $Vm
+The virtual machine to unprotect
+#>
 Function Unprotect-VM () {
     Param(
         [Parameter (Mandatory=$true)] $ProtectionGroup,
@@ -161,4 +246,5 @@ Function Unprotect-VM () {
     $protectTask.GetResult()
 }
 
-#TODO: Export-ModuleMember -function Get-ProtectionGroup, Get-RecoveryPlan, Get-ProtectedVM, Get-ProtectedDatastore, Protect-VM, Unprotect-VM
+#TODO: When packaged as a module export public members
+# Export-ModuleMember -function Get-ProtectionGroup, Get-RecoveryPlan, Get-ProtectedVM, Get-ProtectedDatastore, Protect-VM, Unprotect-VM
