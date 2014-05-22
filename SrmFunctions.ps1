@@ -246,5 +246,58 @@ Function Unprotect-VM () {
     $protectTask.GetResult()
 }
 
+<#
+.SYNOPSIS
+Start a Recovery Plan action like test, recovery, cleanup, etc.
+
+.PARAMETER RecoveryPlan
+The recovery plan to start
+
+.PARAMETER RecoveryMode
+The recovery mode to invoke on the plan. May be one of "Test", "Cleanup", "Failover", "Reprotect"
+#>
+Function Start-RecoveryPlan () {
+    [cmdletbinding(SupportsShouldProcess=$True,ConfirmImpact="High")]
+    Param(
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $RecoveryPlan,
+        [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanRecoveryMode] $RecoveryMode = 'Test'
+    )
+
+    # Validate with informative error messages
+    $rpinfo = $RecoveryPlan.GetInfo()
+
+    # Prompt the user to confirm they want to execute the action
+    if ($pscmdlet.ShouldProcess($rpinfo.Name, $RecoveryMode)) {
+        if ($rpinfo.State -eq 'Protecting') {
+            throw "This recovery plan action needs to be initiated from the other SRM instance"
+        }
+
+        $RecoveryPlan.Start($RecoveryMode)
+    }
+}
+
+<#
+.SYNOPSIS
+Stop a running Recovery Plan action.
+
+.PARAMETER RecoveryPlan
+The recovery plan to stop
+#>
+Function Stop-RecoveryPlan () {
+    [cmdletbinding(SupportsShouldProcess=$True,ConfirmImpact="High")]
+    Param(
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $RecoveryPlan
+    )
+
+    # Validate with informative error messages
+    $rpinfo = $RecoveryPlan.GetInfo()
+
+    # Prompt the user to confirm they want to cancel the running action
+    if ($pscmdlet.ShouldProcess($rpinfo.Name, 'Cancel')) {
+
+        $RecoveryPlan.Cancel()
+    }
+}
+
 #TODO: When packaged as a module export public members
 # Export-ModuleMember -function Get-ProtectionGroup, Get-RecoveryPlan, Get-ProtectedVM, Get-ProtectedDatastore, Protect-VM, Unprotect-VM
