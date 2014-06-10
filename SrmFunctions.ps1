@@ -74,8 +74,6 @@ Function Get-ProtectionGroup () {
     }
 }
 
-}
-
 <#
 .SYNOPSIS
 Get the subset of recovery plans matching the input criteria
