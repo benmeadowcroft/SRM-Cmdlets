@@ -51,7 +51,7 @@ Goal: Create a simple report listing the state of the last test of a recovery pl
 
     Get-RecoveryPlan | %{ $_ |
         Get-RecoveryPlanResult -RecoveryMode Test | select -First 1
-    } | Select Name, StartTime, RunMode, ResultState | FT
+    } | Select Name, StartTime, RunMode, ResultState | Format-Table
 
 
 ### Execute a Recovery Plan Test
