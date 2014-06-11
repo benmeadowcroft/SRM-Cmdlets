@@ -47,7 +47,7 @@ Function Get-ProtectionGroup () {
     Param(
         [string] $Name,
         [string] $Type,
-        [Parameter (ValueFromPipeline=$true)] $RecoveryPlan
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan
     )
     begin {
         $api = $global:DefaultSrmServers[0].ExtensionData
@@ -88,7 +88,7 @@ groups
 Function Get-RecoveryPlan () {
     Param(
         [string] $Name,
-        [Parameter (ValueFromPipeline=$true)] $ProtectionGroup
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup
     )
 
     begin {
@@ -135,30 +135,30 @@ groups
 Function Get-ProtectedVM () {
     Param(
         [string] $Name,
-        [string] $State,
-        [Parameter (ValueFromPipeline=$true)] $ProtectionGroup,
+        [VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectionState] $State,
+        [VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectionState] $PeerState,
+        [bool] $NeedsConfiguration,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [string] $ProtectionGroupName
     )
 
-    if (-not $ProtectionGroup) {
+    if ($null -eq $ProtectionGroup) {
         $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName
     }
     $ProtectionGroup | % {
         $pg = $_
         $pg.ListProtectedVms() | % {
+            # try and update the view data for the protected VM
             try {
                 $_.Vm.UpdateViewData()
-            } catch {
-                # silently ignore
-            }
-            
-            $selected = $true
-            $selected = $selected -and (-not $Name -or ($Name -eq $_.Vm.Name))
-            $selected = $selected -and (-not $State -or ($State -eq $_.State))
-            if ($selected) {
                 $_
+            } catch {
+                $_ # we will pass it through anyway if we can't update it
             }
-        }
+        } | Where-object { -not $Name -or ($Name -eq $_.Vm.Name) } |
+            where-object { -not $State -or ($State -eq $_.State) } |
+            where-object { -not $PeerState -or ($PeerState -eq $_.PeerState) } |
+            where-object { $null -eq $NeedsConfiguration -or ($NeedsConfiguration -eq $_.NeedsConfiguration) }
     }
 }
 
@@ -173,7 +173,7 @@ groups
 #>
 Function Get-ProtectedDatastore () {
     Param(
-        [Parameter (ValueFromPipeline=$true)] $ProtectionGroup,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [string] $ProtectionGroupName
     )
 
@@ -201,7 +201,7 @@ The virtual machine to protect
 #>
 Function Protect-VM () {
     Param(
-        [Parameter (Mandatory=$true)] $ProtectionGroup,
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup,
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $Vm
     )
 
@@ -231,7 +231,7 @@ The virtual machine to unprotect
 #>
 Function Unprotect-VM () {
     Param(
-        [Parameter (Mandatory=$true)] $ProtectionGroup,
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup,
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $Vm
     )
 
@@ -257,7 +257,7 @@ The recovery mode to invoke on the plan. May be one of "Test", "Cleanup", "Failo
 Function Start-RecoveryPlan () {
     [cmdletbinding(SupportsShouldProcess=$True,ConfirmImpact="High")]
     Param(
-        [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $RecoveryPlan,
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanRecoveryMode] $RecoveryMode = 'Test'
     )
 
@@ -284,7 +284,7 @@ The recovery plan to stop
 Function Stop-RecoveryPlan () {
     [cmdletbinding(SupportsShouldProcess=$True,ConfirmImpact="High")]
     Param(
-        [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $RecoveryPlan
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan
     )
 
     # Validate with informative error messages
@@ -297,5 +297,54 @@ Function Stop-RecoveryPlan () {
     }
 }
 
+<#
+.SYNOPSIS
+Retrieve the historical results of a recovery plan
+
+.PARAMETER RecoveryPlan
+The recovery plan to retrieve the history for
+#>
+Function Get-RecoveryPlanResult () {
+    Param(
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
+        [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanRecoveryMode] $RecoveryMode,
+        [VMware.VimAutomation.Srm.Views.SrmRecoveryResultResultState] $ResultState,
+        [DateTime] $StartedAfter,
+        [DateTime] $startedBefore
+    )
+
+    $api = $global:DefaultSrmServers[0].ExtensionData
+
+    # Get the history objects
+    $history = $api.Recovery.GetHistory($RecoveryPlan.MoRef)
+    $results = $history.GetRecoveryResult($history.GetResultCount())
+
+    $results |
+        Where-Object { -not $RecoveryMode -or $_.RunMode -eq $RecoveryMode } |
+        Where-Object { -not $ResultState -or $_.ResultState -eq $ResultState } |
+        Where-Object { $null -eq $StartedAfter -or $_.StartTime -gt $StartedAfter } |
+        Where-Object { $null -eq $StartedBefore -or $_.StartTime -lt $StartedBefore }
+}
+
+<#
+.SYNOPSIS
+Exports a recovery plan result object to XML format
+
+.PARAMETER RecoveryPlanResult
+The recovery plan result to export
+#>
+Function Export-RecoveryPlanResultAsXml () {
+    Param(
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryResult] $RecoveryPlanResult
+    )
+
+    $api = $global:DefaultSrmServers[0].ExtensionData
+
+    $RecoveryPlan = $RecoveryPlanResult.Plan
+    $history = $api.Recovery.GetHistory($RecoveryPlan.MoRef)
+    $lines = $history.GetResultLength($RecoveryPlanResult.Key)
+    [xml] $history.RetrieveStatus($RecoveryPlanResult.Key, 0, $lines)
+}
+
 #TODO: When packaged as a module export public members
-# Export-ModuleMember -function Get-ProtectionGroup, Get-RecoveryPlan, Get-ProtectedVM, Get-ProtectedDatastore, Protect-VM, Unprotect-VM
+# Export-ModuleMember -function Get-ProtectionGroup, Get-RecoveryPlan, Get-ProtectedVM, Get-ProtectedDatastore, Protect-VM, Unprotect-VMs, ...
