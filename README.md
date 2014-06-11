@@ -66,3 +66,10 @@ Goal: get the XML report of the last recovery plan execution for a specific reco
 
     Get-RecoveryPlan -Name "Name of Plan" | Get-RecoveryPlanResult |
         select -First 1 | Export-RecoveryPlanResultAsXml
+
+### Protect a Replicated VM
+
+Goal: Take a VM replicated using vSphere Replication or Array Based Replication, add it to an appropriate protection group and configure it for protection
+
+    $pg = Get-ProtectionGroup 'Name of Protection Group"
+    Get-VM vm-01a | Protect-VM -ProtectionGroup $pg
