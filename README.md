@@ -35,15 +35,14 @@ Goal: Create a simple report listing the VMs protected by SRM and the protection
 
     Get-ProtectionGroup | %{
         $pg = $_
-            Get-ProtectedVM -ProtectionGroup $pg } | %{
-                $output = "" | select VmName, PgName
-                $output.VmName = $_.Vm.Name
-                $output.PgName = $pg.GetInfo().Name
-                $output
-            } |
-            Format-Table @{Label="VM Name"; Expression={$_.VmName} },
+        Get-ProtectedVM -ProtectionGroup $pg } | %{
+            $output = "" | select VmName, PgName
+            $output.VmName = $_.Vm.Name
+            $output.PgName = $pg.GetInfo().Name
+            $output
+        } | Format-Table @{Label="VM Name"; Expression={$_.VmName} },
                          @{Label="Protection group name"; Expression={$_.PgName}
-        }
+    }
 
 ### Report the Last Recovery Plan Test
 
@@ -71,5 +70,5 @@ Goal: get the XML report of the last recovery plan execution for a specific reco
 
 Goal: Take a VM replicated using vSphere Replication or Array Based Replication, add it to an appropriate protection group and configure it for protection
 
-    $pg = Get-ProtectionGroup 'Name of Protection Group"
+    $pg = Get-ProtectionGroup "Name of Protection Group"
     Get-VM vm-01a | Protect-VM -ProtectionGroup $pg
