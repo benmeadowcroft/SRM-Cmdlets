@@ -190,7 +190,7 @@ Function Get-UnProtectedVM () {
         $pg = $_
         # For VR listAssociatedVms to get list of VMs
         if ($pg.GetInfo().Type -eq 'vr') {
-            $associatedVMs += @($pg.ListAssociatedVms())
+            $associatedVMs += @($pg.ListAssociatedVms() | Get-VIObjectByVIView)
         }
         # TODO test this: For ABR get VMs on GetProtectedDatastore
         if ($pg.GetInfo().Type -eq 'san') {
@@ -203,7 +203,7 @@ Function Get-UnProtectedVM () {
     }
 
     # get associated but unprotected VMs
-    $associatedVMs | where { $protectedVmRefs -notcontains $_.MoRef }
+    $associatedVMs | where { $protectedVmRefs -notcontains $_.ExtensionData.MoRef }
 }
 
 #Untested as I don't have ABR setup in my lab yet
