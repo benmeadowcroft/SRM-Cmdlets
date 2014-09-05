@@ -162,6 +162,50 @@ Function Get-ProtectedVM () {
     }
 }
 
+<#
+.SYNOPSIS
+Get the unprotected VMs that are associated with a protection group
+
+.PARAMETER ProtectionGroup
+Return unprotected VMs associated with particular protection
+groups. For VR protection groups this is VMs that are associated
+with the PG but not configured, For ABR protection groups this is
+VMs on replicated datastores associated with the group that are not
+configured.
+#>
+Function Get-UnProtectedVM () {
+    Param(
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
+        [string] $ProtectionGroupName
+    )
+
+    if ($null -eq $ProtectionGroup) {
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName
+    }
+
+    $associatedVMs = @()
+    $protectedVmRefs = @()
+
+    $ProtectionGroup | % {
+        $pg = $_
+        # For VR listAssociatedVms to get list of VMs
+        if ($pg.GetInfo().Type -eq 'vr') {
+            $associatedVMs += @($pg.ListAssociatedVms())
+        }
+        # TODO test this: For ABR get VMs on GetProtectedDatastore
+        if ($pg.GetInfo().Type -eq 'san') {
+            $ds = @(Get-ProtectedDatastore -ProtectionGroup $pg)
+            $associatedVMs += @(Get-VM -Datastore $ds)
+        }
+
+        # get protected VMs
+        $protectedVmRefs += @(Get-ProtectedVM -ProtectionGroup $pg | %{ $_.Vm.MoRef } | Select -Unique)
+    }
+
+    # get associated but unprotected VMs
+    $associatedVMs | where { $protectedVmRefs -notcontains $_.MoRef }
+}
+
 #Untested as I don't have ABR setup in my lab yet
 <#
 .SYNOPSIS
