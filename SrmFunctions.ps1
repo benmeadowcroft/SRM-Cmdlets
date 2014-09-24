@@ -195,7 +195,7 @@ Function Get-UnProtectedVM () {
         # TODO test this: For ABR get VMs on GetProtectedDatastore
         if ($pg.GetInfo().Type -eq 'san') {
             $pds = @(Get-ProtectedDatastore -ProtectionGroup $pg)
-            $pds | foreach {
+            $pds | % {
                 $ds = Get-Datastore -id $_.MoRef
                 $associatedVMs += @(Get-VM -Datastore $ds)
             }
