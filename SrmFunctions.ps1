@@ -200,7 +200,6 @@ Function Get-UnProtectedVM () {
                 $associatedVMs += @(Get-VM -Datastore $ds)
             }
         }
-    }
 
         # get protected VMs
         $protectedVmRefs += @(Get-ProtectedVM -ProtectionGroup $pg | %{ $_.Vm.MoRef } | Select -Unique)
