@@ -151,9 +151,10 @@ Function Get-ProtectedVM () {
             # try and update the view data for the protected VM
             try {
                 $_.Vm.UpdateViewData()
-                $_
             } catch {
-                $_ # we will pass it through anyway if we can't update it
+                Write-Error $_            
+            } finally {
+                $_
             }
         } | Where-object { -not $Name -or ($Name -eq $_.Vm.Name) } |
             where-object { -not $State -or ($State -eq $_.State) } |
