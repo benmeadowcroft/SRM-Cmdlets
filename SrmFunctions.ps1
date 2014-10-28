@@ -404,5 +404,41 @@ Function Export-RecoveryPlanResultAsXml () {
     [xml] $history.RetrieveStatus($RecoveryPlanResult.Key, 0, $lines)
 }
 
+<#
+.SYNOPSIS
+Add a protection group to a recovery plan
+
+.PARAMETER RecoveryPlan
+The recovery plan the protection group will be associated with
+
+.PARAMETER ProtectionGroup
+The protection group to associate with the recovery plan
+#>
+Function Add-ProtectionGroup () {
+    Param(
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup
+    )
+
+    begin {
+        $api = $global:DefaultSrmServers[0].ExtensionData
+        $srmversion = Get-SrmVersion
+        if ($srmversion.StartsWith("5.8") -eq $false) {
+            Throw "Add-ProtectionGroup is not supported with version " + $srmversion + " of SRM"
+        }
+    }
+    process {
+        if ($RecoveryPlan -and $ProtectionGroup) {
+            foreach ($pg in $ProtectionGroup) {
+                try {
+                    $RecoveryPlan.AddProtectionGroup($pg.MoRef)
+                } catch {
+                    Write-Error $_
+                }
+            }
+        }
+    }
+}
+
 #TODO: When packaged as a module export public members
 # Export-ModuleMember -function Get-ProtectionGroup, Get-RecoveryPlan, Get-ProtectedVM, Get-ProtectedDatastore, Protect-VM, Unprotect-VMs, ...
