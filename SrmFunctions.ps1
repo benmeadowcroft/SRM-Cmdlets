@@ -28,6 +28,16 @@ Function Select-UniqueByMoRef() { #TODO: don't export when packaged as a module
 
 <#
 .SYNOPSIS
+This is intended to be an "internal" function only. It returns the
+SRM version number for use in determining which code is called for
+items which differ between SRM releases
+#>
+Function Get-SrmVersion {
+    $global:DefaultSrmServers[0].Version
+}
+
+<#
+.SYNOPSIS
 Get the subset of protection groups matching the input criteria
 
 .PARAMETER Name
