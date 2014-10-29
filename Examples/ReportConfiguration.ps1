@@ -74,6 +74,7 @@ Function Get-SrmConfigReportProtectedDatastore () {
 
 
 Function Get-SrmConfigReportProtectedVm () {
+    $srmversion = Get-SrmVersion
     Get-ProtectionGroup | %{
         $pg = $_
         $pginfo = $pg.GetInfo()
@@ -82,7 +83,9 @@ Function Get-SrmConfigReportProtectedVm () {
         $rpnames = $rps | %{ $_.GetInfo().Name }
         $pvms | %{
             $pvm = $_
-            $rs = $rps | Select -First 1 | %{ $_.GetRecoverySettings($pvm.Vm.MoRef) }
+            if ($srmversion.StartsWith("5.8")) {
+                $rs = $rps | Select -First 1 | %{ $_.GetRecoverySettings($pvm.Vm.MoRef) }
+            }
             $output = "" | select group, name, state, peerState, plans, priority, finalPowerState
             $output.group = $pginfo.Name
             $output.name = $pvm.Vm.Name
