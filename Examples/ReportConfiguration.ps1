@@ -8,11 +8,11 @@ Function Get-SrmConfigReportSite {
 
     Get-SrmServer $SrmServer |
         Format-Table -Wrap -AutoSize @{Label="SRM Site Name"; Expression={$_.ExtensionData.GetSiteName()} },
-            @{Label="SRM Peer Site Name"; Expression={$_.ExtensionData.GetPairedSite().Name} },
             @{Label="SRM Host"; Expression={$_.Name} },
             @{Label="SRM Port"; Expression={$_.Port} },
             @{Label="Version"; Expression={$_.Version} },
-            @{Label="Build"; Expression={$_.Build}}
+            @{Label="Build"; Expression={$_.Build} },
+            @{Label="SRM Peer Site Name"; Expression={$_.ExtensionData.GetPairedSite().Name} }
 }
 
 Function Get-SrmConfigReportPlan {
