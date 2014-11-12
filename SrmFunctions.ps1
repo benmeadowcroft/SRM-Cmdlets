@@ -33,7 +33,45 @@ SRM version number for use in determining which code is called for
 items which differ between SRM releases
 #>
 Function Get-SrmVersion {
-    $global:DefaultSrmServers[0].Version
+    Param(
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+    )
+    $srm = Get-SrmServer $SrmServer
+    $srm.Version
+}
+
+<#
+.SYNOPSIS
+Lookup the srm instance for a specific server.
+#>
+Function Get-SrmServer {
+    Param(
+        [string] $SrmServerAddress,
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+    )
+
+    $found = $null
+
+    if ($SrmServer) {
+        $found = $SrmServer
+    } elseif ($SrmServerAddress) {
+        # search for server address in default servers
+        $global:DefaultSrmServers | %{
+            if ($_.Name -ieq $SrmServerAddress) {
+                $found = $_
+            }
+        }
+        if (-not $found) {
+            throw "SRM server $SrmServerAddress not found. Connect-SrmServer must be called first."
+        }
+    }
+
+    if (-not $found) {
+        #default result
+        $found = $global:DefaultSrmServers[0]
+    }
+
+    return $found;
 }
 
 <#
@@ -52,15 +90,20 @@ Replication based protection groups.
 .PARAMETER RecoveryPlan
 Return protection groups associated with a particular recovery
 plan
+
+.PARAMETER SrmServer
+the SRM server to use for this operation.
 #>
 Function Get-ProtectionGroup () {
     Param(
         [string] $Name,
         [string] $Type,
-        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
     begin {
-        $api = $global:DefaultSrmServers[0].ExtensionData
+        $srm = Get-SrmServer $SrmServer
+        $api = $srm.ExtensionData
         $pgs = @()
     }
     process {
@@ -98,11 +141,13 @@ groups
 Function Get-RecoveryPlan () {
     Param(
         [string] $Name,
-        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
     begin {
-        $api = $global:DefaultSrmServers[0].ExtensionData
+        $srm = Get-SrmServer $SrmServer
+        $api = $srm.ExtensionData
         $rps = @()
     }
     process {
@@ -149,11 +194,12 @@ Function Get-ProtectedVM () {
         [VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectionState] $PeerState,
         [bool] $NeedsConfiguration,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
-        [string] $ProtectionGroupName
+        [string] $ProtectionGroupName,
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
     if ($null -eq $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -SrmServer $SrmServer
     }
     $ProtectionGroup | % {
         $pg = $_
@@ -187,11 +233,12 @@ configured.
 Function Get-UnProtectedVM () {
     Param(
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
-        [string] $ProtectionGroupName
+        [string] $ProtectionGroupName,
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
     if ($null -eq $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -SrmServer $SrmServer
     }
 
     $associatedVMs = @()
@@ -232,11 +279,12 @@ groups
 Function Get-ProtectedDatastore () {
     Param(
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
-        [string] $ProtectionGroupName
+        [string] $ProtectionGroupName,
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
     if (-not $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -SrmServer $SrmServer
     }
     $ProtectionGroup | % {
         $pg = $_
@@ -368,10 +416,12 @@ Function Get-RecoveryPlanResult () {
         [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanRecoveryMode] $RecoveryMode,
         [VMware.VimAutomation.Srm.Views.SrmRecoveryResultResultState] $ResultState,
         [DateTime] $StartedAfter,
-        [DateTime] $startedBefore
+        [DateTime] $startedBefore,
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
-    $api = $global:DefaultSrmServers[0].ExtensionData
+    $srm = Get-SrmServer $SrmServer
+    $api = $srm.ExtensionData
 
     # Get the history objects
     $history = $api.Recovery.GetHistory($RecoveryPlan.MoRef)
@@ -393,10 +443,12 @@ The recovery plan result to export
 #>
 Function Export-RecoveryPlanResultAsXml () {
     Param(
-        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryResult] $RecoveryPlanResult
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryResult] $RecoveryPlanResult,
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
-    $api = $global:DefaultSrmServers[0].ExtensionData
+    $srm = Get-SrmServer $SrmServer
+    $api = $srm.ExtensionData
 
     $RecoveryPlan = $RecoveryPlanResult.Plan
     $history = $api.Recovery.GetHistory($RecoveryPlan.MoRef)
@@ -406,7 +458,7 @@ Function Export-RecoveryPlanResultAsXml () {
 
 <#
 .SYNOPSIS
-Add a protection group to a recovery plan
+Add a protection group to a recovery plan. This requires SRM 5.8 or later.
 
 .PARAMETER RecoveryPlan
 The recovery plan the protection group will be associated with
@@ -420,21 +472,12 @@ Function Add-ProtectionGroup () {
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup
     )
 
-    begin {
-        $api = $global:DefaultSrmServers[0].ExtensionData
-        $srmversion = Get-SrmVersion
-        if ($srmversion.StartsWith("5.8") -eq $false) {
-            Throw "Add-ProtectionGroup is not supported with version " + $srmversion + " of SRM"
-        }
-    }
-    process {
-        if ($RecoveryPlan -and $ProtectionGroup) {
-            foreach ($pg in $ProtectionGroup) {
-                try {
-                    $RecoveryPlan.AddProtectionGroup($pg.MoRef)
-                } catch {
-                    Write-Error $_
-                }
+    if ($RecoveryPlan -and $ProtectionGroup) {
+        foreach ($pg in $ProtectionGroup) {
+            try {
+                $RecoveryPlan.AddProtectionGroup($pg.MoRef)
+            } catch {
+                Write-Error $_
             }
         }
     }

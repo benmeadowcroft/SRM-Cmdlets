@@ -1,9 +1,26 @@
 ﻿# Depends on SRM Helper Methods - https://github.com/benmeadowcroft/SRM-Cmdlets
 # It is assumed that the conenct to VC and SRM Server have alrady been made
 
+Function Get-SrmConfigReportSite {
+    Param(
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+    )
 
-Function Get-SrmConfigReportPlan () {
-    Get-RecoveryPlan | %{
+    Get-SrmServer $SrmServer |
+        Format-Table -Wrap -AutoSize @{Label="SRM Site Name"; Expression={$_.ExtensionData.GetSiteName()} },
+            @{Label="SRM Peer Site Name"; Expression={$_.ExtensionData.GetPairedSite().Name} },
+            @{Label="SRM Host"; Expression={$_.Name} },
+            @{Label="SRM Port"; Expression={$_.Port} },
+            @{Label="Version"; Expression={$_.Version} },
+            @{Label="Build"; Expression={$_.Build}}
+}
+
+Function Get-SrmConfigReportPlan {
+    Param(
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+    )
+
+    Get-RecoveryPlan -SrmServer $SrmServer | %{
         $rp = $_
         $rpinfo = $rp.GetInfo()
         $peerState = $rp.GetPeer().State
@@ -24,8 +41,12 @@ Function Get-SrmConfigReportPlan () {
 }
 
 
-Function Get-SrmConfigReportProtectionGroup () {
-    Get-ProtectionGroup | %{
+Function Get-SrmConfigReportProtectionGroup {
+    Param(
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+    )
+
+    Get-ProtectionGroup -SrmServer $SrmServer | %{
         $pg = $_
         $pginfo = $pg.GetInfo()
         $pgstate = $pg.GetProtectionState()
@@ -49,8 +70,12 @@ Function Get-SrmConfigReportProtectionGroup () {
 }
 
 
-Function Get-SrmConfigReportProtectedDatastore () {
-    Get-ProtectionGroup -Type "san" | %{
+Function Get-SrmConfigReportProtectedDatastore {
+    Param(
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+    )
+
+    Get-ProtectionGroup -SrmServer $SrmServer -Type "san" | %{
         $pg = $_
         $pginfo = $pg.GetInfo()
         $pds = Get-ProtectedDatastore -ProtectionGroup $pg
@@ -73,9 +98,13 @@ Function Get-SrmConfigReportProtectedDatastore () {
 }
 
 
-Function Get-SrmConfigReportProtectedVm () {
-    $srmversion = Get-SrmVersion
-    Get-ProtectionGroup | %{
+Function Get-SrmConfigReportProtectedVm {
+    Param(
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+    )
+
+    $srmversion = Get-SrmVersion -SrmServer $SrmServer
+    Get-ProtectionGroup -SrmServer $SrmServer | %{
         $pg = $_
         $pginfo = $pg.GetInfo()
         $pvms = Get-ProtectedVM -ProtectionGroup $pg
@@ -109,10 +138,14 @@ Function Get-SrmConfigReportProtectedVm () {
     
 }
 
-Function Get-SrmConfigReport () {
+Function Get-SrmConfigReport {
+    Param(
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+    )
 
-    Get-SrmConfigReportPlan
-    Get-SrmConfigReportProtectionGroup
-    Get-SrmConfigReportProtectedDatastore
-    Get-SrmConfigReportProtectedVm
+    Get-SrmConfigReportSite -SrmServer $SrmServer
+    Get-SrmConfigReportPlan -SrmServer $SrmServer
+    Get-SrmConfigReportProtectionGroup -SrmServer $SrmServer
+    Get-SrmConfigReportProtectedDatastore -SrmServer $SrmServer
+    Get-SrmConfigReportProtectedVm -SrmServer $SrmServer
 }
