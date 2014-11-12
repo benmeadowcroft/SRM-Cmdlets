@@ -532,5 +532,42 @@ Function Set-RecoverySettings {
     }
 }
 
+<#
+.SYNOPSIS
+Create a new per-Vm command to add to the SRM Recovery Plan
+
+.PARAMETER Command
+The command script to execute.
+
+.PARAMETER Description
+The user friendly description of this script.
+
+.PARAMETER Timeout
+The number of seconds this command has to execute before it will be timedout.
+
+.PARAMETER RunInRecoveredVm
+For a post-power on command this flag determines whether it will run on the
+recovered VM or on the SRM server.
+
+#>
+Function New-SrmCommand {
+    Param(
+        [Parameter (Mandatory=$true)][string] $Command,
+        [Parameter (Mandatory=$true)][string] $Description,
+        [int]    $Timeout = 300,
+        [bool]   $RunInRecoveredVm = $false
+    )
+
+    $srmWsdlCmd = New-Object VMware.VimAutomation.Srm.WsdlTypes.SrmCommand
+    $srmCmd = New-Object VMware.VimAutomation.Srm.Views.SrmCommand -ArgumentList $srmWsdlCmd
+    $srmCmd.Command = $Command
+    $srmCmd.Description = $Description
+    $srmCmd.RunInRecoveredVm = $RunInRecoveredVm
+    $srmCmd.Timeout = $Timeout
+    $srmCmd.Uuid = [guid]::NewGuid()
+
+    $srmCmd
+}
+
 #TODO: When packaged as a module export public members
 # Export-ModuleMember -function Get-ProtectionGroup, Get-RecoveryPlan, Get-ProtectedVM, Get-ProtectedDatastore, Protect-VM, Unprotect-VMs, ...
