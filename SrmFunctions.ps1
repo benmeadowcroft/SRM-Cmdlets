@@ -483,5 +483,54 @@ Function Add-ProtectionGroup () {
     }
 }
 
+<#
+.SYNOPSIS
+Get the recovery settings of a protected VM. This requires SRM 5.8 or later.
+
+.PARAMETER RecoveryPlan
+The recovery plan the settings will be retrieved from.
+
+.PARAMETER Vm
+The virtual machine to retieve recovery settings for.
+
+#>
+Function Get-RecoverySettings () {
+    Param(
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
+        [Parameter (Mandatory=$true)] $Vm
+    )
+
+    if ($RecoveryPlan -and $Vm) {
+        $RecoveryPlan.GetRecoverySettings($Vm.ExtensionData.MoRef)
+    }
+}
+
+<#
+.SYNOPSIS
+Get the recovery settings of a protected VM. This requires SRM 5.8 or later.
+
+.PARAMETER RecoveryPlan
+The recovery plan the settings will be retrieved from.
+
+.PARAMETER Vm
+The virtual machine to configure recovery settings on.
+
+.PARAMETER RecoverySettings
+The recovery settings to configure. These should have been retrieved via a
+call to Get-RecoverySettings
+
+#>
+Function Set-RecoverySettings () {
+    Param(
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
+        [Parameter (Mandatory=$true)] $Vm,
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings
+    )
+
+    if ($RecoveryPlan -and $Vm -and $RecoverySettings) {
+        $RecoveryPlan.SetRecoverySettings($Vm.ExtensionData.MoRef, $RecoverySettings)
+    }
+}
+
 #TODO: When packaged as a module export public members
 # Export-ModuleMember -function Get-ProtectionGroup, Get-RecoveryPlan, Get-ProtectedVM, Get-ProtectedDatastore, Protect-VM, Unprotect-VMs, ...
