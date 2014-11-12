@@ -9,7 +9,7 @@ by the MoRef property on the object.
 .LINK
 https://github.com/benmeadowcroft/SRM-Cmdlets/
 #>
-Function Select-UniqueByMoRef() { #TODO: don't export when packaged as a module
+Function Select-UniqueByMoRef { #TODO: don't export when packaged as a module
 
     Param(
         [Parameter (ValueFromPipeline=$true)] $in
@@ -94,7 +94,7 @@ plan
 .PARAMETER SrmServer
 the SRM server to use for this operation.
 #>
-Function Get-ProtectionGroup () {
+Function Get-ProtectionGroup {
     Param(
         [string] $Name,
         [string] $Type,
@@ -138,7 +138,7 @@ Return recovery plans matching the specified name
 Return recovery plans associated with particular protection
 groups
 #>
-Function Get-RecoveryPlan () {
+Function Get-RecoveryPlan {
     Param(
         [string] $Name,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
@@ -187,7 +187,7 @@ placeholder VMs this is 'shadowing'
 Return protected VMs associated with particular protection
 groups
 #>
-Function Get-ProtectedVM () {
+Function Get-ProtectedVM {
     Param(
         [string] $Name,
         [VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectionState] $State,
@@ -230,7 +230,7 @@ with the PG but not configured, For ABR protection groups this is
 VMs on replicated datastores associated with the group that are not
 configured.
 #>
-Function Get-UnProtectedVM () {
+Function Get-UnProtectedVM {
     Param(
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [string] $ProtectionGroupName,
@@ -276,7 +276,7 @@ Get the subset of protected Datastores matching the input criteria
 Return protected datastores associated with particular protection
 groups
 #>
-Function Get-ProtectedDatastore () {
+Function Get-ProtectedDatastore {
     Param(
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [string] $ProtectionGroupName,
@@ -305,7 +305,7 @@ The protection group that this VM will belong to
 .PARAMETER Vm
 The virtual machine to protect
 #>
-Function Protect-VM () {
+Function Protect-VM {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup,
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $Vm
@@ -335,7 +335,7 @@ The protection group that this VM will be removed from
 .PARAMETER Vm
 The virtual machine to unprotect
 #>
-Function Unprotect-VM () {
+Function Unprotect-VM {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup,
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $Vm
@@ -360,7 +360,7 @@ The recovery plan to start
 .PARAMETER RecoveryMode
 The recovery mode to invoke on the plan. May be one of "Test", "Cleanup", "Failover", "Reprotect"
 #>
-Function Start-RecoveryPlan () {
+Function Start-RecoveryPlan {
     [cmdletbinding(SupportsShouldProcess=$True,ConfirmImpact="High")]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
@@ -387,7 +387,7 @@ Stop a running Recovery Plan action.
 .PARAMETER RecoveryPlan
 The recovery plan to stop
 #>
-Function Stop-RecoveryPlan () {
+Function Stop-RecoveryPlan {
     [cmdletbinding(SupportsShouldProcess=$True,ConfirmImpact="High")]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan
@@ -410,7 +410,7 @@ Retrieve the historical results of a recovery plan
 .PARAMETER RecoveryPlan
 The recovery plan to retrieve the history for
 #>
-Function Get-RecoveryPlanResult () {
+Function Get-RecoveryPlanResult {
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanRecoveryMode] $RecoveryMode,
@@ -441,7 +441,7 @@ Exports a recovery plan result object to XML format
 .PARAMETER RecoveryPlanResult
 The recovery plan result to export
 #>
-Function Export-RecoveryPlanResultAsXml () {
+Function Export-RecoveryPlanResultAsXml {
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryResult] $RecoveryPlanResult,
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
@@ -466,7 +466,7 @@ The recovery plan the protection group will be associated with
 .PARAMETER ProtectionGroup
 The protection group to associate with the recovery plan
 #>
-Function Add-ProtectionGroup () {
+Function Add-ProtectionGroup {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup
@@ -494,7 +494,7 @@ The recovery plan the settings will be retrieved from.
 The virtual machine to retieve recovery settings for.
 
 #>
-Function Get-RecoverySettings () {
+Function Get-RecoverySettings {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [Parameter (Mandatory=$true)] $Vm
@@ -520,7 +520,7 @@ The recovery settings to configure. These should have been retrieved via a
 call to Get-RecoverySettings
 
 #>
-Function Set-RecoverySettings () {
+Function Set-RecoverySettings {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [Parameter (Mandatory=$true)] $Vm,
