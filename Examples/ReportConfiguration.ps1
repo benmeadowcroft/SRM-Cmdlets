@@ -1,5 +1,5 @@
 ﻿# Depends on SRM Helper Methods - https://github.com/benmeadowcroft/SRM-Cmdlets
-# It is assumed that the conenct to VC and SRM Server have alrady been made
+# It is assumed that the connect to VC and SRM Server have alrady been made
 
 Function Get-SrmConfigReportSite {
     Param(
