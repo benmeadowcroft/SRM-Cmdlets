@@ -271,8 +271,16 @@ Function Get-UnProtectedVM {
 .SYNOPSIS
 Get the placeholder VMs that are associated with SRM
 #>
-Function Get-PlaceholderVM {
-    Get-VM @Args | where {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -eq 'placeholderVm'}
+Function Get-SrmPlaceholderVM {
+    Get-VM @Args | where {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -ieq 'placeholderVm'}
+}
+
+<#
+.SYNOPSIS
+Get the test VMs that are associated with SRM
+#>
+Function Get-SrmTestVM {
+    Get-VM @Args | where {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -ieq 'testVm'}
 }
 
 #Untested as I don't have ABR setup in my lab yet
