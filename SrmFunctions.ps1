@@ -267,6 +267,14 @@ Function Get-UnProtectedVM {
     $associatedVMs | where { $protectedVmRefs -notcontains $_.ExtensionData.MoRef }
 }
 
+<#
+.SYNOPSIS
+Get the placeholder VMs that are associated with SRM
+#>
+Function Get-PlaceholderVM {
+    Get-VM @Args | where {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -eq 'placeholderVm'}
+}
+
 #Untested as I don't have ABR setup in my lab yet
 <#
 .SYNOPSIS
