@@ -497,11 +497,20 @@ The virtual machine to retieve recovery settings for.
 Function Get-RecoverySettings {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
-        [Parameter (Mandatory=$true)] $Vm
+        [Parameter ()] $Vm,
+        [Parameter ()][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm
     )
 
-    if ($RecoveryPlan -and $Vm) {
-        $RecoveryPlan.GetRecoverySettings($Vm.ExtensionData.MoRef)
+    if ($Vm.ExtensionData.MoRef) { # VM object
+        $moRef = $Vm.ExtensionData.MoRef
+    } elseif ($Vm.MoRef) { # VM view
+        $moRef = $Vm.MoRef
+    } elseif ($protectedVm) {
+        $moRef = $ProtectedVm.Vm.MoRef
+    }
+
+    if ($RecoveryPlan -and $moRef) {
+        $RecoveryPlan.GetRecoverySettings($moRef)
     }
 }
 
@@ -569,6 +578,32 @@ Function New-SrmCommand {
     $srmCmd
 }
 
+<# Internal function #>
+Function _Add-SrmCommand {
+    Param(
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand,
+        [Parameter (Mandatory=$true)][bool] $PostRecovery
+    )
+
+    if ($PostRecovery) {
+        $commands = $RecoverySettings.PostPowerOnCallouts
+    } else {
+        $commands = $RecoverySettings.PrePowerOnCallouts
+    }
+
+    if (-not $commands) {
+        $commands = New-Object System.Collections.Generic.List[VMware.VimAutomation.Srm.Views.SrmCallout]
+    }
+    $commands.Add($SrmCommand)
+
+    if ($PostRecovery) {
+        $RecoverySettings.PostPowerOnCallouts = $commands
+    } else {
+        $RecoverySettings.PrePowerOnCallouts = $commands
+    }
+}
+
 <#
 .SYNOPSIS
 Add an SRM command to the set of pre recovery callouts for a VM.
@@ -586,13 +621,7 @@ Function Add-PreRecoverySrmCommand {
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
-
-    $commands = $RecoverySettings.PrePowerOnCallouts
-    if (-not $commands) {
-        $commands = New-Object System.Collections.Generic.List[VMware.VimAutomation.Srm.Views.SrmCallout]
-    }
-    $commands.Add($SrmCommand)
-    $RecoverySettings.PrePowerOnCallouts = $commands
+    _Add-SrmCommand -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $false
 }
 
 <#
@@ -612,13 +641,7 @@ Function Add-PostRecoverySrmCommand {
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
-
-    $commands = $RecoverySettings.PostPowerOnCallouts
-    if (-not $commands) {
-        $commands = New-Object System.Collections.Generic.List[VMware.VimAutomation.Srm.Views.SrmCallout]
-    }
-    $commands.Add($SrmCommand)
-    $RecoverySettings.PostPowerOnCallouts = $commands
+    _Add-SrmCommand -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $true
 }
 
 #TODO: When packaged as a module export public members
