@@ -548,12 +548,21 @@ call to Get-RecoverySettings
 Function Set-RecoverySettings {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
-        [Parameter (Mandatory=$true)] $Vm,
+        [Parameter ()] $Vm,
+        [Parameter ()][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm,
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings
     )
 
-    if ($RecoveryPlan -and $Vm -and $RecoverySettings) {
-        $RecoveryPlan.SetRecoverySettings($Vm.ExtensionData.MoRef, $RecoverySettings)
+    if ($Vm.ExtensionData.MoRef) { # VM object
+        $moRef = $Vm.ExtensionData.MoRef
+    } elseif ($Vm.MoRef) { # VM view
+        $moRef = $Vm.MoRef
+    } elseif ($protectedVm) {
+        $moRef = $ProtectedVm.Vm.MoRef
+    }
+
+    if ($RecoveryPlan -and $moRef -and $RecoverySettings) {
+        $RecoveryPlan.SetRecoverySettings($moRef, $RecoverySettings)
     }
 }
 
@@ -642,6 +651,27 @@ Function Add-PreRecoverySrmCommand {
 
 <#
 .SYNOPSIS
+Remove an SRM command from the set of pre recovery callouts for a VM.
+
+.PARAMETER RecoverySettings
+The recovery settings to update. These should have been retrieved via a
+call to Get-RecoverySettings
+
+.PARAMETER SrmCommand
+The command to remove from the list.
+
+#>
+Function Remove-PreRecoverySrmCommand {
+    Param(
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
+    )
+
+    $RecoverySettings.PrePowerOnCallouts.Remove($SrmCommand)
+}
+
+<#
+.SYNOPSIS
 Add an SRM command to the set of post recovery callouts for a VM.
 
 .PARAMETER RecoverySettings
@@ -658,6 +688,28 @@ Function Add-PostRecoverySrmCommand {
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
     _Add-SrmCommand -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $true
+}
+
+
+<#
+.SYNOPSIS
+Remove an SRM command from the set of post recovery callouts for a VM.
+
+.PARAMETER RecoverySettings
+The recovery settings to update. These should have been retrieved via a
+call to Get-RecoverySettings
+
+.PARAMETER SrmCommand
+The command to remove from the list.
+
+#>
+Function Remove-PostRecoverySrmCommand {
+    Param(
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
+    )
+
+    $RecoverySettings.PostPowerOnCallouts.Remove($SrmCommand)
 }
 
 #TODO: When packaged as a module export public members
