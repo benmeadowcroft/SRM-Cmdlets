@@ -9,7 +9,7 @@ by the MoRef property on the object.
 .LINK
 https://github.com/benmeadowcroft/SRM-Cmdlets/
 #>
-Function Select-UniqueByMoRef { #TODO: don't export when packaged as a module
+Function _Select-UniqueByMoRef { #TODO: don't export when packaged as a module
 
     Param(
         [Parameter (ValueFromPipeline=$true)] $in
@@ -111,7 +111,7 @@ Function Get-ProtectionGroup {
             foreach ($rp in $RecoveryPlan) {
                 $pgs += $RecoveryPlan.GetInfo().ProtectionGroups
             }
-            $pgs = Select-UniqueByMoRef($pgs)
+            $pgs = _Select-UniqueByMoRef($pgs)
         } else {
             $pgs += $api.Protection.ListProtectionGroups()
         }
@@ -155,7 +155,7 @@ Function Get-RecoveryPlan {
             foreach ($pg in $ProtectionGroup) {
                 $rps += $pg.ListRecoveryPlans()
             }
-            $rps = Select-UniqueByMoRef($rps)
+            $rps = _Select-UniqueByMoRef($rps)
         } else {
             $rps += $api.Recovery.ListPlans()
         }
