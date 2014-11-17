@@ -520,6 +520,7 @@ Function Get-RecoverySettings {
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm
     )
 
+    $moRef = $false
     if ($Vm.ExtensionData.MoRef) { # VM object
         $moRef = $Vm.ExtensionData.MoRef
     } elseif ($Vm.MoRef) { # VM view
@@ -650,6 +651,7 @@ Function Add-PreRecoverySrmCommand {
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
     _Add-SrmCommand -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $false
+    $RecoverySettings #simplify chaining
 }
 
 <#
@@ -671,6 +673,7 @@ Function Remove-PreRecoverySrmCommand {
     )
 
     $RecoverySettings.PrePowerOnCallouts.Remove($SrmCommand)
+    $RecoverySettings #simplify chaining
 }
 
 <#
@@ -691,6 +694,7 @@ Function Add-PostRecoverySrmCommand {
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
     _Add-SrmCommand -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $true
+    $RecoverySettings #simplify chaining
 }
 
 
@@ -713,6 +717,7 @@ Function Remove-PostRecoverySrmCommand {
     )
 
     $RecoverySettings.PostPowerOnCallouts.Remove($SrmCommand)
+    $RecoverySettings #simplify chaining
 }
 
 #TODO: When packaged as a module export public members
