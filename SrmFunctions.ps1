@@ -516,8 +516,8 @@ The virtual machine to retieve recovery settings for.
 Function Get-RecoverySettings {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
-        [Parameter ()] $Vm,
-        [Parameter ()][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm
+        [Parameter (ValueFromPipeline=$true)] $Vm,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm
     )
 
     if ($Vm.ExtensionData.MoRef) { # VM object
