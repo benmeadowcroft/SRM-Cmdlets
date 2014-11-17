@@ -194,12 +194,13 @@ Function Get-ProtectedVM {
         [VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectionState] $PeerState,
         [bool] $NeedsConfiguration,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
         [string] $ProtectionGroupName,
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
     if ($null -eq $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -SrmServer $SrmServer
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
     }
     $ProtectionGroup | % {
         $pg = $_
@@ -233,12 +234,13 @@ configured.
 Function Get-UnProtectedVM {
     Param(
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
         [string] $ProtectionGroupName,
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
     if ($null -eq $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -SrmServer $SrmServer
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
     }
 
     $associatedVMs = @()
@@ -295,12 +297,13 @@ groups
 Function Get-ProtectedDatastore {
     Param(
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
         [string] $ProtectionGroupName,
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
     if (-not $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -SrmServer $SrmServer
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
     }
     $ProtectionGroup | % {
         $pg = $_
