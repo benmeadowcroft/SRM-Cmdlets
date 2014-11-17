@@ -31,7 +31,11 @@ Function Get-SrmConfigReportPlan {
         $output.plan = $rpinfo.Name
         $output.state = $rpinfo.State
         $output.peerState = $peerState
-        $output.groups = [string]::Join(",`r`n", $pgnames)
+        if ($pgnames) {
+            $output.groups = [string]::Join(",`r`n", $pgnames)
+        } else {
+            $output.groups = "NONE"
+        }
 
         $output
     } | Format-Table -Wrap -AutoSize @{Label="Recovery Plan Name"; Expression={$_.plan} },
@@ -59,7 +63,11 @@ Function Get-SrmConfigReportProtectionGroup {
         $output.type = $pginfo.Type
         $output.state = $pgstate
         $output.peerState = $peerState
-        $output.plans = [string]::Join(",`r`n", $rpnames)
+        if ($rpnames) {
+            $output.plans = [string]::Join(",`r`n", $rpnames)
+        } else {
+            $output.plans = "NONE"
+        }
 
         $output
     } | Format-Table -Wrap -AutoSize @{Label="Protection Group Name"; Expression={$_.name} },
