@@ -123,9 +123,10 @@ Function Get-SrmConfigReportProtectedVm {
             if ($srmversion.StartsWith("5.8")) {
                 $rs = $rps | Select -First 1 | %{ $_.GetRecoverySettings($pvm.Vm.MoRef) }
             }
-            $output = "" | select group, name, state, peerState, plans, priority, finalPowerState
+            $output = "" | select group, name, moRef, state, peerState, plans, priority, finalPowerState
             $output.group = $pginfo.Name
             $output.name = $pvm.Vm.Name
+            $output.moRef = $pvm.Vm.MoRef # this is necessary in case we can't retrieve the name when VC is unavailable
             $output.state = $pvm.State
             $output.peerState = $pvm.PeerState
             $output.plans = [string]::Join(",`r`n", $rpnames)
@@ -137,6 +138,7 @@ Function Get-SrmConfigReportProtectedVm {
 
         }
     } | Format-Table -Wrap -AutoSize @{Label="VM Name"; Expression={$_.name} },
+                                   @{Label="VM MoRef"; Expression={$_.moRef} },
                                    @{Label="VM Protection State"; Expression={$_.state} },
                                    @{Label="VM Peer Protection State"; Expression={$_.peerState} },
                                    @{Label="Protection Group"; Expression={$_.group} },
