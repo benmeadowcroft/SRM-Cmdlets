@@ -28,6 +28,32 @@ Function _Select-UniqueByMoRef { #TODO: don't export when packaged as a module
 
 <#
 .SYNOPSIS
+This is intended to be an "internal" function only. It gets the
+MoRef property of a VM from either a VM object, a VM view, or the
+protected VM object.
+#>
+Function _Get-MoRefFromVmObj {
+    Param(
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
+        [Parameter (ValueFromPipeline=$true)][VMware.Vim.VirtualMachine] $VmView,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm
+    )
+
+
+    $moRef = $null
+    if ($Vm.ExtensionData.MoRef) { # VM object
+        $moRef = $Vm.ExtensionData.MoRef
+    } elseif ($VmView.MoRef) { # VM view
+        $moRef = $VmView.MoRef
+    } elseif ($protectedVm) {
+        $moRef = $ProtectedVm.Vm.MoRef
+    }
+
+    $moRef
+}
+
+<#
+.SYNOPSIS
 This is intended to be an "internal" function only. It returns the
 SRM version number for use in determining which code is called for
 items which differ between SRM releases
@@ -96,7 +122,7 @@ the SRM server to use for this operation.
 #>
 Function Get-ProtectionGroup {
     Param(
-        [string] $Name,
+        [Parameter(position=1)][string] $Name,
         [string] $Type,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
@@ -140,7 +166,7 @@ groups
 #>
 Function Get-RecoveryPlan {
     Param(
-        [string] $Name,
+        [Parameter(position=1)][string] $Name,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
@@ -189,7 +215,7 @@ groups
 #>
 Function Get-ProtectedVM {
     Param(
-        [string] $Name,
+        [Parameter(position=1)][string] $Name,
         [VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectionState] $State,
         [VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectionState] $PeerState,
         [switch] $ConfiguredOnly,
@@ -263,7 +289,7 @@ Function Get-UnProtectedVM {
         }
 
         # get protected VMs
-        $protectedVmRefs += @(Get-ProtectedVM -ProtectionGroup $pg -ConfiguredOnly | %{ $_.Vm.MoRef } | Select -Unique)
+        $protectedVmRefs += @(Get-ProtectedVM -ProtectionGroup $pg | %{ $_.Vm.MoRef } | Select -Unique)
     }
 
     # get associated but unprotected VMs
@@ -328,20 +354,27 @@ The virtual machine to protect
 Function Protect-VM {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup,
-        [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $Vm
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
+        [Parameter (ValueFromPipeline=$true)][VMware.Vim.VirtualMachine] $VmView
     )
+
+    $moRef = _Get-MoRefFromVmObj -Vm $Vm -VmView $VmView
 
     $pgi = $ProtectionGroup.GetInfo()
     #TODO query protection status first
 
-    if ($pgi.Type -eq 'vr') {
-        $ProtectionGroup.AssociateVms(@($vm.ExtensionData.MoRef))
+    if ($moRef) {
+        if ($pgi.Type -eq 'vr') {
+            $ProtectionGroup.AssociateVms(@($moRef))
+        }
+        $protectionSpec = New-Object VMware.VimAutomation.Srm.Views.SrmProtectionGroupVmProtectionSpec
+        $protectionSpec.Vm = $moRef
+        $protectTask = $ProtectionGroup.ProtectVms($protectionSpec)
+        while(-not $protectTask.IsComplete()) { sleep -Seconds 1 }
+        $protectTask.GetResult()
+    } else {
+        throw "Can't protect the VM, no MoRef found."
     }
-    $protectionSpec = New-Object VMware.VimAutomation.Srm.Views.SrmProtectionGroupVmProtectionSpec
-    $protectionSpec.Vm = $Vm.ExtensionData.MoRef
-    $protectTask = $ProtectionGroup.ProtectVms($protectionSpec)
-    while(-not $protectTask.IsComplete()) { sleep -Seconds 1 }
-    $protectTask.GetResult()  
 }
 
 
@@ -358,14 +391,18 @@ The virtual machine to unprotect
 Function Unprotect-VM {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup,
-        [Parameter (Mandatory=$true, ValueFromPipeline=$true)] $Vm
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
+        [Parameter (ValueFromPipeline=$true)][VMware.Vim.VirtualMachine] $VmView,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm
     )
 
+    $moRef = _Get-MoRefFromVmObj -Vm $Vm -VmView $VmView -ProtectedVm $ProtectedVm
+
     $pgi = $ProtectionGroup.GetInfo()
-    $protectTask = $ProtectionGroup.UnprotectVms($Vm.ExtensionData.MoRef)
+    $protectTask = $ProtectionGroup.UnprotectVms($moRef)
     while(-not $protectTask.IsComplete()) { sleep -Seconds 1 }
     if ($pgi.Type -eq 'vr') {
-        $ProtectionGroup.UnassociateVms(@($vm.ExtensionData.MoRef))
+        $ProtectionGroup.UnassociateVms(@($moRef))
     }
     $protectTask.GetResult()
 }
@@ -381,10 +418,10 @@ The recovery plan to start
 The recovery mode to invoke on the plan. May be one of "Test", "Cleanup", "Failover", "Reprotect"
 #>
 Function Start-RecoveryPlan {
-    [cmdletbinding(SupportsShouldProcess=$True,ConfirmImpact="High")]
+    [cmdletbinding(SupportsShouldProcess=$True, ConfirmImpact="High")]
     Param(
-        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
-        [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanRecoveryMode] $RecoveryMode = 'Test'
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
+        [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanRecoveryMode] $RecoveryMode = [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanRecoveryMode]::Test
     )
 
     # Validate with informative error messages
@@ -410,7 +447,7 @@ The recovery plan to stop
 Function Stop-RecoveryPlan {
     [cmdletbinding(SupportsShouldProcess=$True,ConfirmImpact="High")]
     Param(
-        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan
     )
 
     # Validate with informative error messages
@@ -432,7 +469,7 @@ The recovery plan to retrieve the history for
 #>
 Function Get-RecoveryPlanResult {
     Param(
-        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanRecoveryMode] $RecoveryMode,
         [VMware.VimAutomation.Srm.Views.SrmRecoveryResultResultState] $ResultState,
         [DateTime] $StartedAfter,
@@ -463,7 +500,7 @@ The recovery plan result to export
 #>
 Function Export-RecoveryPlanResultAsXml {
     Param(
-        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryResult] $RecoveryPlanResult,
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryResult] $RecoveryPlanResult,
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
@@ -488,8 +525,8 @@ The protection group to associate with the recovery plan
 #>
 Function Add-ProtectionGroup {
     Param(
-        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
-        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup
+        [Parameter (Mandatory=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true, Position=2)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup
     )
 
     if ($RecoveryPlan -and $ProtectionGroup) {
@@ -517,18 +554,12 @@ The virtual machine to retieve recovery settings for.
 Function Get-RecoverySettings {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
-        [Parameter (ValueFromPipeline=$true)] $Vm,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
+        [Parameter (ValueFromPipeline=$true)][VMware.Vim.VirtualMachine] $VmView,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm
     )
 
-    $moRef = $false
-    if ($Vm.ExtensionData.MoRef) { # VM object
-        $moRef = $Vm.ExtensionData.MoRef
-    } elseif ($Vm.MoRef) { # VM view
-        $moRef = $Vm.MoRef
-    } elseif ($protectedVm) {
-        $moRef = $ProtectedVm.Vm.MoRef
-    }
+    $moRef = _Get-MoRefFromVmObj -Vm $Vm -VmView $VmView -ProtectedVm $ProtectedVm
 
     if ($RecoveryPlan -and $moRef) {
         $RecoveryPlan.GetRecoverySettings($moRef)
@@ -553,18 +584,14 @@ call to Get-RecoverySettings
 Function Set-RecoverySettings {
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
-        [Parameter ()] $Vm,
-        [Parameter ()][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
+        [Parameter (ValueFromPipeline=$true)][VMware.Vim.VirtualMachine] $VmView,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm,
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings
     )
 
-    if ($Vm.ExtensionData.MoRef) { # VM object
-        $moRef = $Vm.ExtensionData.MoRef
-    } elseif ($Vm.MoRef) { # VM view
-        $moRef = $Vm.MoRef
-    } elseif ($protectedVm) {
-        $moRef = $ProtectedVm.Vm.MoRef
-    }
+    
+    $moRef = _Get-MoRefFromVmObj -Vm $Vm -VmView $VmView -ProtectedVm $ProtectedVm
 
     if ($RecoveryPlan -and $moRef -and $RecoverySettings) {
         $RecoveryPlan.SetRecoverySettings($moRef, $RecoverySettings)
@@ -594,7 +621,7 @@ Function New-SrmCommand {
         [Parameter (Mandatory=$true)][string] $Command,
         [Parameter (Mandatory=$true)][string] $Description,
         [int]    $Timeout = 300,
-        [bool]   $RunInRecoveredVm = $false
+        [switch] $RunInRecoveredVm = $false
     )
 
     $srmWsdlCmd = New-Object VMware.VimAutomation.Srm.WsdlTypes.SrmCommand
