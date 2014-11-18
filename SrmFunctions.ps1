@@ -192,7 +192,8 @@ Function Get-ProtectedVM {
         [string] $Name,
         [VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectionState] $State,
         [VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectionState] $PeerState,
-        [bool] $NeedsConfiguration,
+        [switch] $ConfiguredOnly,
+        [switch] $UnconfiguredOnly,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
         [string] $ProtectionGroupName,
@@ -216,7 +217,7 @@ Function Get-ProtectedVM {
         } | Where-object { -not $Name -or ($Name -eq $_.Vm.Name) } |
             where-object { -not $State -or ($State -eq $_.State) } |
             where-object { -not $PeerState -or ($PeerState -eq $_.PeerState) } |
-            where-object { $null -eq $NeedsConfiguration -or ($NeedsConfiguration -eq $_.NeedsConfiguration) }
+            where-object { ($ConfiguredOnly -and $_.NeedsConfiguration -eq $false) -or ($UnconfiguredOnly -and $_.NeedsConfiguration -eq $true) -or (-not $ConfiguredOnly -and -not $UnconfiguredOnly) }
     }
 }
 
@@ -262,7 +263,7 @@ Function Get-UnProtectedVM {
         }
 
         # get protected VMs
-        $protectedVmRefs += @(Get-ProtectedVM -ProtectionGroup $pg | %{ $_.Vm.MoRef } | Select -Unique)
+        $protectedVmRefs += @(Get-ProtectedVM -ProtectionGroup $pg -ConfiguredOnly | %{ $_.Vm.MoRef } | Select -Unique)
     }
 
     # get associated but unprotected VMs
