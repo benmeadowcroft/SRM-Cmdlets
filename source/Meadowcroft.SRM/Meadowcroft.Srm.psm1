@@ -9,7 +9,7 @@ by the MoRef property on the object.
 .LINK
 https://github.com/benmeadowcroft/SRM-Cmdlets/
 #>
-Function _Select-UniqueByMoRef { #TODO: don't export when packaged as a module
+Function Select_UniqueByMoRef {
 
     Param(
         [Parameter (ValueFromPipeline=$true)] $in
@@ -32,7 +32,7 @@ This is intended to be an "internal" function only. It gets the
 MoRef property of a VM from either a VM object, a VM view, or the
 protected VM object.
 #>
-Function _Get-MoRefFromVmObj {
+Function Get_MoRefFromVmObj {
     Param(
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
         [Parameter (ValueFromPipeline=$true)][VMware.Vim.VirtualMachine] $VmView,
@@ -54,15 +54,14 @@ Function _Get-MoRefFromVmObj {
 
 <#
 .SYNOPSIS
-This is intended to be an "internal" function only. It returns the
-SRM version number for use in determining which code is called for
-items which differ between SRM releases
+Retrieve the SRM Server Version
 #>
-Function Get-SrmVersion {
+Function Get-ServerVersion {
+    [cmdletbinding()]
     Param(
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
-    $srm = Get-SrmServer $SrmServer
+    $srm = Get-Server $SrmServer
     $srm.Version
 }
 
@@ -70,7 +69,8 @@ Function Get-SrmVersion {
 .SYNOPSIS
 Lookup the srm instance for a specific server.
 #>
-Function Get-SrmServer {
+Function Get-Server {
+    [cmdletbinding()]
     Param(
         [string] $SrmServerAddress,
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
@@ -88,7 +88,7 @@ Function Get-SrmServer {
             }
         }
         if (-not $found) {
-            throw "SRM server $SrmServerAddress not found. Connect-SrmServer must be called first."
+            throw "SRM server $SrmServerAddress not found. Connect-Server must be called first."
         }
     }
 
@@ -121,6 +121,7 @@ plan
 the SRM server to use for this operation.
 #>
 Function Get-ProtectionGroup {
+    [cmdletbinding()]
     Param(
         [Parameter(position=1)][string] $Name,
         [string] $Type,
@@ -128,7 +129,7 @@ Function Get-ProtectionGroup {
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
     begin {
-        $srm = Get-SrmServer $SrmServer
+        $srm = Get-Server $SrmServer
         $api = $srm.ExtensionData
         $pgs = @()
     }
@@ -137,7 +138,7 @@ Function Get-ProtectionGroup {
             foreach ($rp in $RecoveryPlan) {
                 $pgs += $RecoveryPlan.GetInfo().ProtectionGroups
             }
-            $pgs = _Select-UniqueByMoRef($pgs)
+            $pgs = Select_UniqueByMoRef($pgs)
         } else {
             $pgs += $api.Protection.ListProtectionGroups()
         }
@@ -165,6 +166,7 @@ Return recovery plans associated with particular protection
 groups
 #>
 Function Get-RecoveryPlan {
+    [cmdletbinding()]
     Param(
         [Parameter(position=1)][string] $Name,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
@@ -172,7 +174,7 @@ Function Get-RecoveryPlan {
     )
 
     begin {
-        $srm = Get-SrmServer $SrmServer
+        $srm = Get-Server $SrmServer
         $api = $srm.ExtensionData
         $rps = @()
     }
@@ -181,7 +183,7 @@ Function Get-RecoveryPlan {
             foreach ($pg in $ProtectionGroup) {
                 $rps += $pg.ListRecoveryPlans()
             }
-            $rps = _Select-UniqueByMoRef($rps)
+            $rps = Select_UniqueByMoRef($rps)
         } else {
             $rps += $api.Recovery.ListPlans()
         }
@@ -214,6 +216,7 @@ Return protected VMs associated with particular protection
 groups
 #>
 Function Get-ProtectedVM {
+    [cmdletbinding()]
     Param(
         [Parameter(position=1)][string] $Name,
         [VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectionState] $State,
@@ -227,7 +230,7 @@ Function Get-ProtectedVM {
     )
 
     if ($null -eq $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -Server $SrmServer
     }
     $ProtectionGroup | % {
         $pg = $_
@@ -259,6 +262,7 @@ VMs on replicated datastores associated with the group that are not
 configured.
 #>
 Function Get-UnProtectedVM {
+    [cmdletbinding()]
     Param(
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
@@ -267,7 +271,7 @@ Function Get-UnProtectedVM {
     )
 
     if ($null -eq $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -Server $SrmServer
     }
 
     $associatedVMs = @()
@@ -300,7 +304,9 @@ Function Get-UnProtectedVM {
 .SYNOPSIS
 Get the placeholder VMs that are associated with SRM
 #>
-Function Get-SrmPlaceholderVM {
+Function Get-PlaceholderVM {
+    [cmdletbinding()]
+    Param()
     Get-VM @Args | where {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -ieq 'placeholderVm'}
 }
 
@@ -308,7 +314,9 @@ Function Get-SrmPlaceholderVM {
 .SYNOPSIS
 Get the test VMs that are associated with SRM
 #>
-Function Get-SrmTestVM {
+Function Get-TestVM {
+    [cmdletbinding()]
+    Param()
     Get-VM @Args | where {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -ieq 'testVm'}
 }
 
@@ -322,6 +330,7 @@ Return protected datastores associated with particular protection
 groups
 #>
 Function Get-ProtectedDatastore {
+    [cmdletbinding()]
     Param(
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
@@ -330,7 +339,7 @@ Function Get-ProtectedDatastore {
     )
 
     if (-not $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -Server $SrmServer
     }
     $ProtectionGroup | % {
         $pg = $_
@@ -352,13 +361,14 @@ The protection group that this VM will belong to
 The virtual machine to protect
 #>
 Function Protect-VM {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
         [Parameter (ValueFromPipeline=$true)][VMware.Vim.VirtualMachine] $VmView
     )
 
-    $moRef = _Get-MoRefFromVmObj -Vm $Vm -VmView $VmView
+    $moRef = Get_MoRefFromVmObj -Vm $Vm -VmView $VmView
 
     $pgi = $ProtectionGroup.GetInfo()
     #TODO query protection status first
@@ -389,6 +399,7 @@ The protection group that this VM will be removed from
 The virtual machine to unprotect
 #>
 Function Unprotect-VM {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
@@ -396,7 +407,7 @@ Function Unprotect-VM {
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm
     )
 
-    $moRef = _Get-MoRefFromVmObj -Vm $Vm -VmView $VmView -ProtectedVm $ProtectedVm
+    $moRef = Get_MoRefFromVmObj -Vm $Vm -VmView $VmView -ProtectedVm $ProtectedVm
 
     $pgi = $ProtectionGroup.GetInfo()
     $protectTask = $ProtectionGroup.UnprotectVms($moRef)
@@ -468,6 +479,7 @@ Retrieve the historical results of a recovery plan
 The recovery plan to retrieve the history for
 #>
 Function Get-RecoveryPlanResult {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanRecoveryMode] $RecoveryMode,
@@ -477,7 +489,7 @@ Function Get-RecoveryPlanResult {
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
-    $srm = Get-SrmServer $SrmServer
+    $srm = Get-Server $SrmServer
     $api = $srm.ExtensionData
 
     # Get the history objects
@@ -499,12 +511,13 @@ Exports a recovery plan result object to XML format
 The recovery plan result to export
 #>
 Function Export-RecoveryPlanResultAsXml {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryResult] $RecoveryPlanResult,
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
-    $srm = Get-SrmServer $SrmServer
+    $srm = Get-Server $SrmServer
     $api = $srm.ExtensionData
 
     $RecoveryPlan = $RecoveryPlanResult.Plan
@@ -524,6 +537,7 @@ The recovery plan the protection group will be associated with
 The protection group to associate with the recovery plan
 #>
 Function Add-ProtectionGroup {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [Parameter (Mandatory=$true, ValueFromPipeline=$true, Position=2)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup
@@ -552,6 +566,7 @@ The virtual machine to retieve recovery settings for.
 
 #>
 Function Get-RecoverySettings {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
@@ -559,7 +574,7 @@ Function Get-RecoverySettings {
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm
     )
 
-    $moRef = _Get-MoRefFromVmObj -Vm $Vm -VmView $VmView -ProtectedVm $ProtectedVm
+    $moRef = Get_MoRefFromVmObj -Vm $Vm -VmView $VmView -ProtectedVm $ProtectedVm
 
     if ($RecoveryPlan -and $moRef) {
         $RecoveryPlan.GetRecoverySettings($moRef)
@@ -582,6 +597,7 @@ call to Get-RecoverySettings
 
 #>
 Function Set-RecoverySettings {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
@@ -591,7 +607,7 @@ Function Set-RecoverySettings {
     )
 
     
-    $moRef = _Get-MoRefFromVmObj -Vm $Vm -VmView $VmView -ProtectedVm $ProtectedVm
+    $moRef = Get_MoRefFromVmObj -Vm $Vm -VmView $VmView -ProtectedVm $ProtectedVm
 
     if ($RecoveryPlan -and $moRef -and $RecoverySettings) {
         $RecoveryPlan.SetRecoverySettings($moRef, $RecoverySettings)
@@ -616,7 +632,8 @@ For a post-power on command this flag determines whether it will run on the
 recovered VM or on the SRM server.
 
 #>
-Function New-SrmCommand {
+Function New-Command {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true)][string] $Command,
         [Parameter (Mandatory=$true)][string] $Description,
@@ -636,7 +653,8 @@ Function New-SrmCommand {
 }
 
 <# Internal function #>
-Function _Add-SrmCommand {
+Function Add_Command {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand,
@@ -673,12 +691,13 @@ call to Get-RecoverySettings
 The command to add to the list.
 
 #>
-Function Add-PreRecoverySrmCommand {
+Function Add-PreRecoveryCommand {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
-    _Add-SrmCommand -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $false
+    Add_Command -RecoverySettings $RecoverySettings -Command $SrmCommand -PostRecovery $false
     $RecoverySettings #simplify chaining
 }
 
@@ -694,7 +713,8 @@ call to Get-RecoverySettings
 The command to remove from the list.
 
 #>
-Function Remove-PreRecoverySrmCommand {
+Function Remove-PreRecoveryCommand {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
@@ -716,12 +736,13 @@ call to Get-RecoverySettings
 The command to add to the list.
 
 #>
-Function Add-PostRecoverySrmCommand {
+Function Add-PostRecoveryCommand {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
-    _Add-SrmCommand -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $true
+    Add_Command -RecoverySettings $RecoverySettings -Command $SrmCommand -PostRecovery $true
     $RecoverySettings #simplify chaining
 }
 
@@ -738,7 +759,8 @@ call to Get-RecoverySettings
 The command to remove from the list.
 
 #>
-Function Remove-PostRecoverySrmCommand {
+Function Remove-PostRecoveryCommand {
+    [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
@@ -747,6 +769,3 @@ Function Remove-PostRecoverySrmCommand {
     $RecoverySettings.PostPowerOnCallouts.Remove($SrmCommand)
     $RecoverySettings #simplify chaining
 }
-
-#TODO: When packaged as a module export public members
-# Export-ModuleMember -function Get-ProtectionGroup, Get-RecoveryPlan, Get-ProtectedVM, Get-ProtectedDatastore, Protect-VM, Unprotect-VMs, ...
