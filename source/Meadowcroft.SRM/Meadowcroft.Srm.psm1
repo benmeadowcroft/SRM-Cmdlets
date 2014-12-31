@@ -697,7 +697,7 @@ Function Add-PreRecoveryCommand {
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
-    Add_Command -RecoverySettings $RecoverySettings -Command $SrmCommand -PostRecovery $false
+    Add_Command -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $false
     $RecoverySettings #simplify chaining
 }
 
@@ -742,7 +742,7 @@ Function Add-PostRecoveryCommand {
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
-    Add_Command -RecoverySettings $RecoverySettings -Command $SrmCommand -PostRecovery $true
+    Add_Command -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $true
     $RecoverySettings #simplify chaining
 }
 
