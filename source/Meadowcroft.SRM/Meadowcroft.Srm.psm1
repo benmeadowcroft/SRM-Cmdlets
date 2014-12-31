@@ -230,7 +230,7 @@ Function Get-ProtectedVM {
     )
 
     if ($null -eq $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -Server $SrmServer
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
     }
     $ProtectionGroup | % {
         $pg = $_
@@ -271,7 +271,7 @@ Function Get-UnProtectedVM {
     )
 
     if ($null -eq $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -Server $SrmServer
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
     }
 
     $associatedVMs = @()
@@ -339,7 +339,7 @@ Function Get-ProtectedDatastore {
     )
 
     if (-not $ProtectionGroup) {
-        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -Server $SrmServer
+        $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
     }
     $ProtectionGroup | % {
         $pg = $_
