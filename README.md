@@ -7,17 +7,27 @@ These are provided for illustrative/educational purposes.
 
 ## Getting Started
 
-### Pre-requisites
+### Build or Download SRM-Cmdlets.zip
 
- - Download `SrmFunctions.ps1` and save to disk
- - Open PowerCLI 5.5 R2 prompt
+Either:
+
+ - Download the `SRM-Cmdlets.zip` file from http://www.benmeadowcroft.com/projects/srm-cmdlets-for-powercli/
+
+Or:
+
+ - Build `SRM-Cmdlets.zip` file by checking out the project and running build.ps1 from the projects root directory. This will create the distributable zip file in the dist directory.
+
+### Deploy SRM-Cmdlets module
+
+ - Take `Srm-Cmdlets.zip` and extract the contents into the powershell module path. See [Microsoft's Installing Modules instructions](http://msdn.microsoft.com/en-us/library/dd878350) for more details.
+ - Open PowerCLI 5.5 R2 or 5.8 R1 prompt
  - Verify You are running with PowerShell v3 or later
 
         $PSVersionTable.PSVersion
 
- - 'dot source' `SrmFunctions.ps1` to load the custom functions into your current session
+ - Import the SRM-Cmdlets module
 
-        . .\SrmFunctions.ps1
+        Import-Module Meadowcroft.SRM
 
 ### Connecting to SRM
 
@@ -33,9 +43,9 @@ At this point we've just been using the cmdlets provided by PowerCLI, the PowerC
 
 Goal: Create a simple report listing the VMs protected by SRM and the protection group they belong to.
 
-    Get-ProtectionGroup | %{
+    Get-SrmProtectionGroup | %{
         $pg = $_
-        Get-ProtectedVM -ProtectionGroup $pg } | %{
+        Get-SrmProtectedVM -ProtectionGroup $pg } | %{
             $output = "" | select VmName, PgName
             $output.VmName = $_.Vm.Name
             $output.PgName = $pg.GetInfo().Name
@@ -48,8 +58,8 @@ Goal: Create a simple report listing the VMs protected by SRM and the protection
 
 Goal: Create a simple report listing the state of the last test of a recovery plan
 
-    Get-RecoveryPlan | %{ $_ |
-        Get-RecoveryPlanResult -RecoveryMode Test | select -First 1
+    Get-SrmRecoveryPlan | %{ $_ |
+        Get-SrmRecoveryPlanResult -RecoveryMode Test | select -First 1
     } | Select Name, StartTime, RunMode, ResultState | Format-Table
 
 
@@ -57,18 +67,18 @@ Goal: Create a simple report listing the state of the last test of a recovery pl
 
 Goal: for a specific recovery plan, execute a test failover. Note the "local" SRM server we are connected to should be the recovery site in order for this to be successful.
 
-    Get-RecoveryPlan -Name "Name of Plan" | Start-RecoveryPlan -RecoveryMode Test
+    Get-SrmRecoveryPlan -Name "Name of Plan" | Start-SrmRecoveryPlan -RecoveryMode Test
 
 ### Export the Detailed XML Report of the Last Recovery Plan Workflow
 
 Goal: get the XML report of the last recovery plan execution for a specific recovery plan.
 
-    Get-RecoveryPlan -Name "Name of Plan" | Get-RecoveryPlanResult |
+    Get-SrmRecoveryPlan -Name "Name of Plan" | Get-SrmRecoveryPlanResult |
         select -First 1 | Export-RecoveryPlanResultAsXml
 
 ### Protect a Replicated VM
 
 Goal: Take a VM replicated using vSphere Replication or Array Based Replication, add it to an appropriate protection group and configure it for protection
 
-    $pg = Get-ProtectionGroup "Name of Protection Group"
-    Get-VM vm-01a | Protect-VM -ProtectionGroup $pg
+    $pg = Get-SrmProtectionGroup "Name of Protection Group"
+    Get-VM vm-01a | Protect-SrmVM -ProtectionGroup $pg
