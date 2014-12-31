@@ -1,10 +1,16 @@
 ﻿# This script will package the PowerShell files in a zip file for distribution
 # It should be run from the root directory of the project
 
-$zippath = ".\dist\SRM-Cmdlets.zip"
+$distpath = ".\dist"
+$zippath = Join-Path -Path $distpath -ChildPath "SRM-Cmdlets.zip"
 
-# Clean up before rebuilding the distributable
-Remove-Item $zippath
+# Get folder structure and files ready for the build step
+if (-not (Test-Path $distpath)) {
+    New-Item $distpath -ItemType directory | Out-Null
+}
+if (Test-Path $zippath) {
+    Remove-Item $zippath
+}
 
 # Create the zip file
 Set-Content $zippath ("PK" + [char]5 + [char]6 + ("$([char]0)" * 18)) 
