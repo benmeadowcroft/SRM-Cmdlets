@@ -20,11 +20,11 @@ Function Get-SrmConfigReportPlan {
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
-    Get-RecoveryPlan -SrmServer $SrmServer | %{
+    Get-SrmRecoveryPlan -SrmServer $SrmServer | %{
         $rp = $_
         $rpinfo = $rp.GetInfo()
         $peerState = $rp.GetPeer().State
-        $pgs = Get-ProtectionGroup -RecoveryPlan $rp
+        $pgs = Get-SrmProtectionGroup -RecoveryPlan $rp
         $pgnames = $pgs | %{ $_.GetInfo().Name }
 
         $output = "" | select plan, state, peerState, groups
@@ -50,12 +50,12 @@ Function Get-SrmConfigReportProtectionGroup {
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
-    Get-ProtectionGroup -SrmServer $SrmServer | %{
+    Get-SrmProtectionGroup -SrmServer $SrmServer | %{
         $pg = $_
         $pginfo = $pg.GetInfo()
         $pgstate = $pg.GetProtectionState()
         $peerState = $pg.GetPeer().State
-        $rps = Get-RecoveryPlan -ProtectionGroup $pg
+        $rps = Get-SrmRecoveryPlan -ProtectionGroup $pg
         $rpnames = $rps | %{ $_.GetInfo().Name }
 
         $output = "" | select name, type, state, peerState, plans
@@ -83,10 +83,10 @@ Function Get-SrmConfigReportProtectedDatastore {
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
-    Get-ProtectionGroup -SrmServer $SrmServer -Type "san" | %{
+    Get-SrmProtectionGroup -SrmServer $SrmServer -Type "san" | %{
         $pg = $_
         $pginfo = $pg.GetInfo()
-        $pds = Get-ProtectedDatastore -ProtectionGroup $pg
+        $pds = Get-SrmProtectedDatastore -ProtectionGroup $pg
         $pds | %{
             $pd = $_
             $output = "" | select datacenter, group, name, capacity, free
@@ -111,12 +111,12 @@ Function Get-SrmConfigReportProtectedVm {
         [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
     )
 
-    $srmversion = Get-SrmVersion -SrmServer $SrmServer
-    Get-ProtectionGroup -SrmServer $SrmServer | %{
+    $srmversion = Get-SrmServerVersion -SrmServer $SrmServer
+    Get-SrmProtectionGroup -SrmServer $SrmServer | %{
         $pg = $_
         $pginfo = $pg.GetInfo()
-        $pvms = Get-ProtectedVM -ProtectionGroup $pg
-        $rps = Get-RecoveryPlan -ProtectionGroup $pg
+        $pvms = Get-SrmProtectedVM -ProtectionGroup $pg
+        $rps = Get-SrmRecoveryPlan -ProtectionGroup $pg
         $rpnames = $rps | %{ $_.GetInfo().Name }
         $pvms | %{
             $pvm = $_
