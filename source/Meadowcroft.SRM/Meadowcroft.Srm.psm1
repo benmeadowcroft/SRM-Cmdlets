@@ -320,6 +320,17 @@ Function Get-TestVM {
     Get-VM @Args | where {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -ieq 'testVm'}
 }
 
+<#
+.SYNOPSIS
+Get the VMs that are replicated using vSphere Replication. These may not be SRM
+protected VMs.
+#>
+Function Get-ReplicatedVM {
+    [cmdletbinding()]
+    Param()
+    Get-VM @Args | where {($_.ExtensionData.Config.ExtraConfig | where { $_.Key -eq 'hbr_filter.destination' -and $_.Value } )}
+}
+
 #Untested as I don't have ABR setup in my lab yet
 <#
 .SYNOPSIS
