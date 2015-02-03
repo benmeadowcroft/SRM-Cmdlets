@@ -360,6 +360,22 @@ Function Get-ProtectedDatastore {
     }
 }
 
+#Untested as I don't have ABR setup in my lab yet
+<#
+.SYNOPSIS
+Get the replicated datastores that aren't associated with a protection group.
+#>
+Function Get-ReplicatedDatastore {
+    [cmdletbinding()]
+    Param(
+        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+    )
+
+    $SrmServer = Get-Server -SrmServer $SrmServer
+
+    $SrmServer.ExtensionData.Protection.ListReplicatedDatastores()
+}
+
 
 <#
 .SYNOPSIS
