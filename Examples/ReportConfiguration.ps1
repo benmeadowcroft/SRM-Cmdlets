@@ -112,6 +112,8 @@ Function Get-SrmConfigReportProtectedVm {
     )
 
     $srmversion = Get-SrmServerVersion -SrmServer $SrmServer
+    $srmMajorVersion, $srmMinorVersion = $srmversion -split "\."
+
     Get-SrmProtectionGroup -SrmServer $SrmServer | %{
         $pg = $_
         $pginfo = $pg.GetInfo()
@@ -120,7 +122,7 @@ Function Get-SrmConfigReportProtectedVm {
         $rpnames = $rps | %{ $_.GetInfo().Name }
         $pvms | %{
             $pvm = $_
-            if ($srmversion.StartsWith("5.8")) {
+            if ($srmMajorVersion -ge 6 -or ($srmMajorVersion -eq 5 -and $srmMinorVersion -eq 8)) {
                 $rs = $rps | Select -First 1 | %{ $_.GetRecoverySettings($pvm.Vm.MoRef) }
             }
             $output = "" | select group, name, moRef, needsConfiguration, state, plans, priority, finalPowerState, preCallouts, postCallouts
