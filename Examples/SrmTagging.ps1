@@ -15,7 +15,7 @@ if (-Not $TagCategory) {
     Write-Output "Creating Tag SrmProtectedVm"
     New-Tag -Name 'SrmProtectedVm' -Category $TagCategory -Description "VM protected by VMware SRM"
     Write-Output "Creating Tag SrmTestVm"
-    New-Tag -Name 'SrmTestVm' -Category $TagCategory -Description "Test VM instanatied by VMware SRM"
+    New-Tag -Name 'SrmTestVm' -Category $TagCategory -Description "Test VM instantiated by VMware SRM"
     Write-Output "Creating Tag SrmPlaceholderVm"
     New-Tag -Name 'SrmPlaceholderVm' -Category $TagCategory -Description "Placeholder VM used by VMware SRM"
 }
