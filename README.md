@@ -43,9 +43,9 @@ At this point we've just been using the cmdlets provided by PowerCLI, the PowerC
 
 Goal: Create a simple report listing the VMs protected by SRM and the protection group they belong to.
 
-    Get-SrmProtectionGroup | %{
+    Get-ProtectionGroup | %{
         $pg = $_
-        Get-SrmProtectedVM -ProtectionGroup $pg } | %{
+        Get-ProtectedVM -ProtectionGroup $pg } | %{
             $output = "" | select VmName, PgName
             $output.VmName = $_.Vm.Name
             $output.PgName = $pg.GetInfo().Name
@@ -58,8 +58,8 @@ Goal: Create a simple report listing the VMs protected by SRM and the protection
 
 Goal: Create a simple report listing the state of the last test of a recovery plan
 
-    Get-SrmRecoveryPlan | %{ $_ |
-        Get-SrmRecoveryPlanResult -RecoveryMode Test | select -First 1
+    Get-RecoveryPlan | %{ $_ |
+        Get-RecoveryPlanResult -RecoveryMode Test | select -First 1
     } | Select Name, StartTime, RunMode, ResultState | Format-Table
 
 
@@ -67,18 +67,18 @@ Goal: Create a simple report listing the state of the last test of a recovery pl
 
 Goal: for a specific recovery plan, execute a test failover. Note the "local" SRM server we are connected to should be the recovery site in order for this to be successful.
 
-    Get-SrmRecoveryPlan -Name "Name of Plan" | Start-SrmRecoveryPlan -RecoveryMode Test
+    Get-RecoveryPlan -Name "Name of Plan" | Start-RecoveryPlan -RecoveryMode Test
 
 ### Export the Detailed XML Report of the Last Recovery Plan Workflow
 
 Goal: get the XML report of the last recovery plan execution for a specific recovery plan.
 
-    Get-SrmRecoveryPlan -Name "Name of Plan" | Get-SrmRecoveryPlanResult |
+    Get-RecoveryPlan -Name "Name of Plan" | Get-RecoveryPlanResult |
         select -First 1 | Export-RecoveryPlanResultAsXml
 
 ### Protect a Replicated VM
 
 Goal: Take a VM replicated using vSphere Replication or Array Based Replication, add it to an appropriate protection group and configure it for protection
 
-    $pg = Get-SrmProtectionGroup "Name of Protection Group"
-    Get-VM vm-01a | Protect-SrmVM -ProtectionGroup $pg
+    $pg = Get-ProtectionGroup "Name of Protection Group"
+    Get-VM vm-01a | Protect-VM -ProtectionGroup $pg
