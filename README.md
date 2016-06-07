@@ -29,6 +29,8 @@ Or:
 
         Import-Module Meadowcroft.SRM
 
+The module uses the default prefix of `Srm` for the custom functions it defines. This can be overridden when importing the module by setting the value of the `-Prefix` parameter to something else when calling `Import-Module`.
+
 ### Connecting to SRM
 
 Now let's connect to the SRM server. Details of how to do this are located in the [PowerCLI 5.5 R2 User's Guide](http://pubs.vmware.com/vsphere-55/topic/com.vmware.powercli.ug.doc/GUID-A5F206CF-264D-4565-8CB9-4ED1C337053F.html)
