@@ -59,7 +59,7 @@ Retrieve the SRM Server Version
 Function Get-ServerVersion {
     [cmdletbinding()]
     Param(
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
     $srm = Get-Server $SrmServer
     $srm.Version
@@ -73,7 +73,7 @@ Function Get-Server {
     [cmdletbinding()]
     Param(
         [string] $SrmServerAddress,
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     $found = $null
@@ -126,7 +126,7 @@ Function Get-ProtectionGroup {
         [Parameter(position=1)][string] $Name,
         [string] $Type,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
     begin {
         $srm = Get-Server $SrmServer
@@ -170,7 +170,7 @@ Function Get-RecoveryPlan {
     Param(
         [Parameter(position=1)][string] $Name,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     begin {
@@ -226,7 +226,7 @@ Function Get-ProtectedVM {
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
         [string] $ProtectionGroupName,
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     if ($null -eq $ProtectionGroup) {
@@ -267,7 +267,7 @@ Function Get-UnProtectedVM {
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
         [string] $ProtectionGroupName,
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     if ($null -eq $ProtectionGroup) {
@@ -346,7 +346,7 @@ Function Get-ProtectedDatastore {
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroup,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan[]] $RecoveryPlan,
         [string] $ProtectionGroupName,
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     if (-not $ProtectionGroup) {
@@ -368,7 +368,7 @@ Get the replicated datastores that aren't associated with a protection group.
 Function Get-ReplicatedDatastore {
     [cmdletbinding()]
     Param(
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     $SrmServer = Get-Server -SrmServer $SrmServer
@@ -513,7 +513,7 @@ Function Get-RecoveryPlanResult {
         [VMware.VimAutomation.Srm.Views.SrmRecoveryResultResultState] $ResultState,
         [DateTime] $StartedAfter,
         [DateTime] $startedBefore,
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     $srm = Get-Server $SrmServer
@@ -541,7 +541,7 @@ Function Export-RecoveryPlanResultAsXml {
     [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryResult] $RecoveryPlanResult,
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     $srm = Get-Server $SrmServer
