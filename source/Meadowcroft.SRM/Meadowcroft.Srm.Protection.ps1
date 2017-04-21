@@ -27,8 +27,7 @@ Function Get-ProtectionGroup {
         [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
     begin {
-        $srm = Get-Server $SrmServer
-        $api = $srm.ExtensionData
+        $api = Get-ServerApiEndpoint -SrmServer $SrmServer
         $pgs = @()
     }
     process {
@@ -196,9 +195,9 @@ Function Get-ReplicatedDatastore {
         [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
-    $SrmServer = Get-Server -SrmServer $SrmServer
+    $api = Get-ServerApiEndpoint -SrmServer $SrmServer
 
-    $SrmServer.ExtensionData.Protection.ListUnassignedReplicatedDatastores()
+    $api.Protection.ListUnassignedReplicatedDatastores()
 }
 
 <#
@@ -273,17 +272,12 @@ Function Unprotect-VM {
 Function Get-ProtectionGroupFolder {
     [cmdletbinding()]
     Param(
-        [string] $Name,
-        [VMware.Vim.ManagedObjectReference] $ParentFolder,
-        [VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
-    $srm = Get-Server $SrmServer
-    [VMware.VimAutomation.Srm.Views.SrmServiceInstance] $api = $srm.ExtensionData
+    $api = Get-ServerApiEndpoint -SrmServer $SrmServer
 
     $folder = $api.Protection.GetProtectionGroupRootFolder()
 
-    # TODO handle parameters
-
-    $folder
+    return $folder
 }

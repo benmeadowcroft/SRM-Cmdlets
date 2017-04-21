@@ -3,11 +3,17 @@
 .SYNOPSIS
 Trigger Discover Devices for Site Recovery Manager
 
-.PARAMETER ProtectionGroup
-Return discover devices task
+.OUTPUTS
+Returns discover devices task
 #>
 Function Start-DiscoverDevices {
-    $api = Get-ServerApiEndpoint
+    [cmdletbinding()]
+    Param(
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
+    )
+
+    $api = Get-ServerApiEndpoint -SrmServer $SrmServer
+
     [VMware.VimAutomation.Srm.Views.DiscoverDevicesTask] $task = $api.Storage.DiscoverDevices()
 
     return $task

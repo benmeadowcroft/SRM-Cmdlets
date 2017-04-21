@@ -19,8 +19,7 @@ Function Get-RecoveryPlan {
     )
 
     begin {
-        $srm = Get-Server $SrmServer
-        $api = $srm.ExtensionData
+        $api = Get-ServerApiEndpoint -SrmServer $SrmServer
         $rps = @()
     }
     process {
@@ -114,9 +113,8 @@ Function Get-RecoveryPlanResult {
         [DateTime] $startedBefore,
         [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
-
-    $srm = Get-Server $SrmServer
-    $api = $srm.ExtensionData
+    
+    $api = Get-ServerApiEndpoint -SrmServer $SrmServer
 
     # Get the history objects
     $history = $api.Recovery.GetHistory($RecoveryPlan.MoRef)
@@ -147,8 +145,7 @@ Function Export-RecoveryPlanResultAsXml {
         [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
-    $srm = Get-Server $SrmServer
-    $api = $srm.ExtensionData
+    $api = Get-ServerApiEndpoint -SrmServer $SrmServer
 
     $RecoveryPlan = $RecoveryPlanResult.Plan
     $history = $api.Recovery.GetHistory($RecoveryPlan.MoRef)
@@ -406,18 +403,24 @@ Function New-RecoveryPlan {
     Param(
         [Parameter (Mandatory=$true)][string] $Name,
         [string] $Description,
-        [VMware.Vim.ManagedObjectReference] $Folder,
+        [VMware.VimAutomation.Srm.Views.SrmRecoveryPlanFolder] $Folder,
         [VMware.VimAutomation.Srm.Views.SrmProtectionGroup[]] $ProtectionGroups,
-        [VMware.VimAutomation.Srm.Views.SrmRecoveryTestNetworkMapping[]] $TestNetworkMappings
+        [VMware.VimAutomation.Srm.Views.SrmRecoveryTestNetworkMapping[]] $TestNetworkMappings,
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
-    $srm = Get-Server $SrmServer
-    [VMware.VimAutomation.Srm.Views.SrmServiceInstance] $api = $srm.ExtensionData
+    $api = Get-ServerApiEndpoint -SrmServer $SrmServer
+
+    if (-not $Folder) {
+        $Folder = Get-RecoveryPlanFolder -SrmServer $SrmServer
+    }
+
+    $protectionGroupmRefs += @( $ProtectionGroups | %{ $_.MoRef } | Select -Unique)
 
     $task = $api.Recovery.CreateRecoveryPlan(
         $Name,
-        $Folder,
-        $ProtectionGroups,
+        $Folder.MoRef,
+        $protectionGroupmRefs,
         $Description,
         $TestNetworkMappings
     )
@@ -430,17 +433,12 @@ Function New-RecoveryPlan {
 Function Get-RecoveryPlanFolder {
     [cmdletbinding()]
     Param(
-        [string] $Name,
-        [VMware.Vim.ManagedObjectReference] $ParentFolder,
-        [VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
-    $srm = Get-Server $SrmServer
-    [VMware.VimAutomation.Srm.Views.SrmServiceInstance] $api = $srm.ExtensionData
+    $api = Get-ServerApiEndpoint -SrmServer $SrmServer
 
     $folder = $api.Recovery.GetRecoveryPlanRootFolder()
 
-    # TODO handle parameters
-
-    $folder
+    return $folder
 }
