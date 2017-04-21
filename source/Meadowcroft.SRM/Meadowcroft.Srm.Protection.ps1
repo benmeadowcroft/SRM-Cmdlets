@@ -198,9 +198,8 @@ Function Get-ReplicatedDatastore {
 
     $SrmServer = Get-Server -SrmServer $SrmServer
 
-    $SrmServer.ExtensionData.Protection.ListReplicatedDatastores()
+    $SrmServer.ExtensionData.Protection.ListUnassignedReplicatedDatastores()
 }
-
 
 <#
 .SYNOPSIS
