@@ -417,7 +417,7 @@ Function New-RecoveryPlan {
 
     $protectionGroupmRefs += @( $ProtectionGroups | %{ $_.MoRef } | Select -Unique)
 
-    $task = $api.Recovery.CreateRecoveryPlan(
+    [VMware.VimAutomation.Srm.Views.CreateRecoveryPlanTask] $task = $api.Recovery.CreateRecoveryPlan(
         $Name,
         $Folder.MoRef,
         $protectionGroupmRefs,
@@ -425,9 +425,25 @@ Function New-RecoveryPlan {
         $TestNetworkMappings
     )
 
-    Wait-Task $task
+    while(-not $task.IsCreateRecoveryPlanComplete()) { sleep -Seconds 1 }
 
     $task.GetNewRecoveryPlan()
+}
+
+
+Function Remove-RecoveryPlan {
+    [cmdletbinding(SupportsShouldProcess=$True, ConfirmImpact="High")]
+    Param(
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
+    )
+
+    $api = Get-ServerApiEndpoint -SrmServer $SrmServer
+
+    $rpinfo = $RecoveryPlan.GetInfo()
+    if ($pscmdlet.ShouldProcess($rpinfo.Name, "Remove")) {
+        $api.Recovery.DeleteRecoveryPlan($RecoveryPlan.MoRef)
+    }
 }
 
 Function Get-RecoveryPlanFolder {
