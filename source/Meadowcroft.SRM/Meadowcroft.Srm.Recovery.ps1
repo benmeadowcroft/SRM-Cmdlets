@@ -120,13 +120,17 @@ Function Get-RecoveryPlanResult {
 
     # Get the history objects
     $history = $api.Recovery.GetHistory($RecoveryPlan.MoRef)
-    $results = $history.GetRecoveryResult($history.GetResultCount())
+    $resultCount = $history.GetResultCount()
+    
+    if ($resultCount -gt 0) {
+        $results = $history.GetRecoveryResult($resultCount)
 
-    $results |
-        Where-Object { -not $RecoveryMode -or $_.RunMode -eq $RecoveryMode } |
-        Where-Object { -not $ResultState -or $_.ResultState -eq $ResultState } |
-        Where-Object { $null -eq $StartedAfter -or $_.StartTime -gt $StartedAfter } |
-        Where-Object { $null -eq $StartedBefore -or $_.StartTime -lt $StartedBefore }
+        $results |
+            Where-Object { -not $RecoveryMode -or $_.RunMode -eq $RecoveryMode } |
+            Where-Object { -not $ResultState -or $_.ResultState -eq $ResultState } |
+            Where-Object { $null -eq $StartedAfter -or $_.StartTime -gt $StartedAfter } |
+            Where-Object { $null -eq $StartedBefore -or $_.StartTime -lt $StartedBefore }
+    }
 }
 
 <#
