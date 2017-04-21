@@ -34,7 +34,7 @@ protected VM object.
 #>
 Function Get_MoRefFromVmObj {
     Param(
-        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Impl.V1.Inventory.VirtualMachineImpl] $Vm,
+        [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Types.V1.Inventory.VirtualMachine] $Vm,
         [Parameter (ValueFromPipeline=$true)][VMware.Vim.VirtualMachine] $VmView,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroupProtectedVm] $ProtectedVm
     )
@@ -50,19 +50,6 @@ Function Get_MoRefFromVmObj {
     }
 
     $moRef
-}
-
-<#
-.SYNOPSIS
-Retrieve the SRM Server Version
-#>
-Function Get-ServerVersion {
-    [cmdletbinding()]
-    Param(
-        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
-    )
-    $srm = Get-Server $SrmServer
-    $srm.Version
 }
 
 <#
@@ -98,6 +85,19 @@ Function Get-Server {
     }
 
     return $found;
+}
+
+<#
+.SYNOPSIS
+Retrieve the SRM Server Version
+#>
+Function Get-ServerVersion {
+    [cmdletbinding()]
+    Param(
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
+    )
+    $srm = Get-Server $SrmServer
+    $srm.Version
 }
 
 <#
