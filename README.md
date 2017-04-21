@@ -76,7 +76,7 @@ Goal: for a specific recovery plan, execute a test failover. Note the "local" SR
 Goal: get the XML report of the last recovery plan execution for a specific recovery plan.
 
     Get-SrmRecoveryPlan -Name "Name of Plan" | Get-SrmRecoveryPlanResult |
-        select -First 1 | Export-RecoveryPlanResultAsXml
+        select -First 1 | Export-SrmRecoveryPlanResultAsXml
 
 ### Protect a Replicated VM
 
