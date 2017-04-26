@@ -1,4 +1,6 @@
-﻿<#
+﻿# SRM Helper Methods - https://github.com/benmeadowcroft/SRM-Cmdlets
+
+<#
 .SYNOPSIS
 Get the subset of protection groups matching the input criteria
 

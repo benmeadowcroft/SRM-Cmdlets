@@ -1,4 +1,5 @@
-﻿
+﻿# SRM Helper Methods - https://github.com/benmeadowcroft/SRM-Cmdlets
+
 <#
 .SYNOPSIS
 Get the subset of recovery plans matching the input criteria
@@ -398,6 +399,29 @@ Function Remove-PostRecoveryCommand {
 }
 
 
+<#
+.SYNOPSIS
+Create a new recovery plan
+
+.PARAMETER Name
+The name for this recovery plan
+
+.PARAMETER Description
+A description of the recovery plan
+
+.PARAMETER Folder
+The recovery plan folder in which to create this recovery plan. Will default to
+the root recovery plan folder
+
+.PARAMETER ProtectionGroups
+The protection groups to associate with this recovery plan
+
+.PARAMETER TestNetworkMappings
+The test network mappings to configure as part of this recovery plan
+
+.PARAMETER SrmServer
+The SRM Server to operate against
+#>
 Function New-RecoveryPlan {
     [cmdletbinding()]
     Param(
@@ -430,7 +454,16 @@ Function New-RecoveryPlan {
     $task.GetNewRecoveryPlan()
 }
 
+<#
+.SYNOPSIS
+Remove a recovery plan permanently
 
+.PARAMETER RecoveryPlan
+The recovery plan to remove
+
+.PARAMETER SrmServer
+The SRM Server to operate against
+#>
 Function Remove-RecoveryPlan {
     [cmdletbinding(SupportsShouldProcess=$True, ConfirmImpact="High")]
     Param(
@@ -446,6 +479,13 @@ Function Remove-RecoveryPlan {
     }
 }
 
+<#
+.SYNOPSIS
+Get a recovery plan folder
+
+.PARAMETER SrmServer
+The SRM Server to query for the recovery plan folder
+#>
 Function Get-RecoveryPlanFolder {
     [cmdletbinding()]
     Param(

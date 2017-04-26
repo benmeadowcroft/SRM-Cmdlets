@@ -1,4 +1,5 @@
-﻿
+﻿# SRM Helper Methods - https://github.com/benmeadowcroft/SRM-Cmdlets
+
 <#
 .SYNOPSIS
 Trigger Discover Devices for Site Recovery Manager
