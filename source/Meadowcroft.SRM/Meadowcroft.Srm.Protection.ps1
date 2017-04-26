@@ -270,7 +270,13 @@ Function Unprotect-VM {
     $protectTask.GetResult()
 }
 
+<#
+.SYNOPSIS
+Get a protection group folder
 
+.PARAMETER SrmServer
+The SRM Server to query for the protection group folder
+#>
 Function Get-ProtectionGroupFolder {
     [cmdletbinding()]
     Param(
