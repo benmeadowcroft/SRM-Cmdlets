@@ -321,7 +321,7 @@ group. These should already be replicated.
 The SRM Server to perform the operation against
 #>
 Function New-ProtectionGroup {
-    [cmdletbinding(DefaultParameterSetName="VR")]
+    [cmdletbinding(DefaultParameterSetName="VR", SupportsShouldProcess=$True, ConfirmImpact="Medium")]
     [OutputType([VMware.VimAutomation.Srm.Views.SrmCreateProtectionGroupTask])]
     Param(
         [Parameter (Mandatory=$true)] $Name,
@@ -354,7 +354,10 @@ Function New-ProtectionGroup {
             $moRefs += Get_MoRefFromVmObj -VmView $VmView
         }
 
-        $task = $api.Protection.CreateHbrProtectionGroup($Folder.MoRef, $Name, $Description, $moRefs)
+        if ($pscmdlet.ShouldProcess($Name, "New")) {
+            $task = $api.Protection.CreateHbrProtectionGroup($Folder.MoRef, $Name, $Description, $moRefs)
+        }
+        
     } elseif ($ArrayReplication) {
         #create list of managed object references from VM and/or VM view arrays
         $moRefs = @()
@@ -365,7 +368,10 @@ Function New-ProtectionGroup {
             $moRefs += $DsView.MoRef
         }
 
-        $task = $api.Protection.CreateAbrProtectionGroup($Folder.MoRef, $Name, $Description, $moRefs)
+        if ($pscmdlet.ShouldProcess($Name, "New")) {
+            $task = $api.Protection.CreateAbrProtectionGroup($Folder.MoRef, $Name, $Description, $moRefs)
+        }
+        
     } else {
         throw "Undetermined protection group type"
     }

@@ -226,7 +226,7 @@ call to Get-RecoverySettings
 
 #>
 Function Set-RecoverySetting {
-    [cmdletbinding()]
+    [cmdletbinding(SupportsShouldProcess=$true, ConfirmImpact="Medium")]
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
         [Parameter (ValueFromPipeline=$true)][VMware.VimAutomation.ViCore.Types.V1.Inventory.VirtualMachine] $Vm,
@@ -239,7 +239,9 @@ Function Set-RecoverySetting {
     $moRef = Get_MoRefFromVmObj -Vm $Vm -VmView $VmView -ProtectedVm $ProtectedVm
 
     if ($RecoveryPlan -and $moRef -and $RecoverySettings) {
-        $RecoveryPlan.SetRecoverySettings($moRef, $RecoverySettings)
+        if ($PSCmdlet.ShouldProcess("$moRef", "Set")) {
+            $RecoveryPlan.SetRecoverySettings($moRef, $RecoverySettings)
+        }
     }
 }
 
@@ -262,7 +264,7 @@ recovered VM or on the SRM server.
 
 #>
 Function New-Command {
-    [cmdletbinding()]
+    [cmdletbinding(SupportsShouldProcess=$true, ConfirmImpact="None")]
     Param(
         [Parameter (Mandatory=$true)][string] $Command,
         [Parameter (Mandatory=$true)][string] $Description,
@@ -270,15 +272,17 @@ Function New-Command {
         [switch] $RunInRecoveredVm = $false
     )
 
-    $srmWsdlCmd = New-Object VMware.VimAutomation.Srm.WsdlTypes.SrmCommand
-    $srmCmd = New-Object VMware.VimAutomation.Srm.Views.SrmCommand -ArgumentList $srmWsdlCmd
-    $srmCmd.Command = $Command
-    $srmCmd.Description = $Description
-    $srmCmd.RunInRecoveredVm = $RunInRecoveredVm
-    $srmCmd.Timeout = $Timeout
-    $srmCmd.Uuid = [guid]::NewGuid()
+    if($PSCmdlet.ShouldProcess("Description", "New")) {
+        $srmWsdlCmd = New-Object VMware.VimAutomation.Srm.WsdlTypes.SrmCommand
+        $srmCmd = New-Object VMware.VimAutomation.Srm.Views.SrmCommand -ArgumentList $srmWsdlCmd
+        $srmCmd.Command = $Command
+        $srmCmd.Description = $Description
+        $srmCmd.RunInRecoveredVm = $RunInRecoveredVm
+        $srmCmd.Timeout = $Timeout
+        $srmCmd.Uuid = [guid]::NewGuid()
 
-    $srmCmd
+        return $srmCmd
+    }
 }
 
 <# Internal function #>
@@ -328,7 +332,7 @@ Function Add-PreRecoveryCommand {
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
     Add_Command -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $false
-    $RecoverySettings #simplify chaining
+    return $RecoverySettings
 }
 
 <#
@@ -344,15 +348,18 @@ The command to remove from the list.
 
 #>
 Function Remove-PreRecoveryCommand {
-    [cmdletbinding()]
+    [cmdletbinding(SupportsShouldProcess=$true, ConfirmImpact="Low")]
     [OutputType([VMware.VimAutomation.Srm.Views.SrmRecoverySettings])]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
 
-    $RecoverySettings.PrePowerOnCallouts.Remove($SrmCommand)
-    $RecoverySettings #simplify chaining
+    if ($pscmdlet.ShouldProcess($SrmCommand.Description, "Remove")) {
+        $RecoverySettings.PrePowerOnCallouts.Remove($SrmCommand)
+    }
+
+    return $RecoverySettings
 }
 
 <#
@@ -374,8 +381,10 @@ Function Add-PostRecoveryCommand {
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
+    
     Add_Command -RecoverySettings $RecoverySettings -SrmCommand $SrmCommand -PostRecovery $true
-    $RecoverySettings #simplify chaining
+    
+    return $RecoverySettings
 }
 
 
@@ -392,15 +401,18 @@ The command to remove from the list.
 
 #>
 Function Remove-PostRecoveryCommand {
-    [cmdletbinding()]
+    [cmdletbinding(SupportsShouldProcess=$true, ConfirmImpact="Low")]
     [OutputType([VMware.VimAutomation.Srm.Views.SrmRecoverySettings])]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
     )
 
-    $RecoverySettings.PostPowerOnCallouts.Remove($SrmCommand)
-    $RecoverySettings #simplify chaining
+    if ($pscmdlet.ShouldProcess($SrmCommand.Description, "Remove")) {
+        $RecoverySettings.PostPowerOnCallouts.Remove($SrmCommand)
+    }
+    
+    return $RecoverySettings
 }
 
 
@@ -428,7 +440,7 @@ The test network mappings to configure as part of this recovery plan
 The SRM Server to operate against
 #>
 Function New-RecoveryPlan {
-    [cmdletbinding()]
+    [cmdletbinding(SupportsShouldProcess=$true, ConfirmImpact="Medium")]
     Param(
         [Parameter (Mandatory=$true)][string] $Name,
         [string] $Description,
@@ -446,13 +458,17 @@ Function New-RecoveryPlan {
 
     $protectionGroupmRefs += @( $ProtectionGroups | %{ $_.MoRef } | Select -Unique)
 
-    [VMware.VimAutomation.Srm.Views.CreateRecoveryPlanTask] $task = $api.Recovery.CreateRecoveryPlan(
-        $Name,
-        $Folder.MoRef,
-        $protectionGroupmRefs,
-        $Description,
-        $TestNetworkMappings
-    )
+    [VMware.VimAutomation.Srm.Views.CreateRecoveryPlanTask] $task = $null
+    
+    if ($PSCmdlet.ShouldProcess($Name, "New")) {
+        $task = $api.Recovery.CreateRecoveryPlan(
+            $Name,
+            $Folder.MoRef,
+            $protectionGroupmRefs,
+            $Description,
+            $TestNetworkMappings
+        )
+    }
 
     while(-not $task.IsCreateRecoveryPlanComplete()) { sleep -Seconds 1 }
 
