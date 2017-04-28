@@ -141,6 +141,7 @@ The recovery plan result to export
 #>
 Function Export-RecoveryPlanResultAsXml {
     [cmdletbinding()]
+    [OutputType([xml])]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryResult] $RecoveryPlanResult,
         [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
@@ -193,7 +194,7 @@ The recovery plan the settings will be retrieved from.
 The virtual machine to retieve recovery settings for.
 
 #>
-Function Get-RecoverySettings {
+Function Get-RecoverySetting {
     [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
@@ -224,7 +225,7 @@ The recovery settings to configure. These should have been retrieved via a
 call to Get-RecoverySettings
 
 #>
-Function Set-RecoverySettings {
+Function Set-RecoverySetting {
     [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
@@ -321,6 +322,7 @@ The command to add to the list.
 #>
 Function Add-PreRecoveryCommand {
     [cmdletbinding()]
+    [OutputType([VMware.VimAutomation.Srm.Views.SrmRecoverySettings])]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
@@ -343,6 +345,7 @@ The command to remove from the list.
 #>
 Function Remove-PreRecoveryCommand {
     [cmdletbinding()]
+    [OutputType([VMware.VimAutomation.Srm.Views.SrmRecoverySettings])]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
@@ -366,6 +369,7 @@ The command to add to the list.
 #>
 Function Add-PostRecoveryCommand {
     [cmdletbinding()]
+    [OutputType([VMware.VimAutomation.Srm.Views.SrmRecoverySettings])]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
@@ -389,6 +393,7 @@ The command to remove from the list.
 #>
 Function Remove-PostRecoveryCommand {
     [cmdletbinding()]
+    [OutputType([VMware.VimAutomation.Srm.Views.SrmRecoverySettings])]
     Param(
         [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmRecoverySettings] $RecoverySettings,
         [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmCommand] $SrmCommand
