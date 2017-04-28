@@ -289,3 +289,118 @@ Function Get-ProtectionGroupFolder {
 
     return $folder
 }
+
+<#
+.SYNOPSIS
+Create a new protection group
+
+.PARAMETER Name
+The name of the protection group
+
+.PARAMETER Description
+Description of the protection group
+
+.PARAMETER Folder
+The protection group folder in which to create the new protection group
+
+.PARAMETER ArrayReplication
+Set if protection group is for replicating VMs using Array based replication
+
+.PARAMETER vSphereReplication
+Set if protection group is for replicating VMs with vSphere Replication
+
+.PARAMETER VMs
+For vSphere Replication based protection, the VMs to add to the replication
+group. These should already be replicated.
+
+.PARAMETER VMViews
+For vSphere Replication based protection, the VMs to add to the replication
+group. These should already be replicated.
+
+.PARAMETER SrmServer
+The SRM Server to perform the operation against
+#>
+Function New-ProtectionGroup {
+    [cmdletbinding(DefaultParameterSetName="VR")]
+    [OutputType([VMware.VimAutomation.Srm.Views.SrmCreateProtectionGroupTask])]
+    Param(
+        [Parameter (Mandatory=$true)] $Name,
+        $Description,
+        [VMware.VimAutomation.Srm.Views.SrmProtectionGroupFolder] $Folder,
+        [Parameter (ParameterSetName="ABR", Mandatory=$true)][switch] $ArrayReplication,
+        [Parameter (ValueFromPipeline=$true, ParameterSetName="ABR")][VMware.VimAutomation.ViCore.Types.V1.DatastoreManagement.Datastore[]] $Datastores,
+        [Parameter (ValueFromPipeline=$true, ParameterSetName="ABR")][VMware.Vim.Datastore[]] $DatastoreViews,
+        [Parameter (ParameterSetName="VR", Mandatory=$true)][switch] $vSphereReplication,
+        [Parameter (ValueFromPipeline=$true, ParameterSetName="VR")][VMware.VimAutomation.ViCore.Types.V1.Inventory.VirtualMachine[]] $VMs,
+        [Parameter (ValueFromPipeline=$true, ParameterSetName="VR")][VMware.Vim.VirtualMachine[]] $VMViews,
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
+    )
+
+    $api = Get-ServerApiEndpoint $SrmServer
+    [VMware.VimAutomation.Srm.Views.SrmCreateProtectionGroupTask] $task = $null
+
+    #get root folder if this wasn't specified as a parameter
+    if(-not $Folder) {
+        $Folder = Get-ProtectionGroupFolder -SrmServer $SrmServer
+    }
+
+    if ($vSphereReplication) {
+        #create list of managed object references from VM and/or VM view arrays
+        [VMware.Vim.ManagedObjectReference[]]$moRefs = @()
+        foreach ($vm in $VMs) {
+            $moRefs += Get_MoRefFromVmObj -Vm $Vm
+        }
+        foreach ($VmView in $VMViews) {
+            $moRefs += Get_MoRefFromVmObj -VmView $VmView
+        }
+
+        $task = $api.Protection.CreateHbrProtectionGroup($Folder.MoRef, $Name, $Description, $moRefs)
+    } elseif ($ArrayReplication) {
+        #create list of managed object references from VM and/or VM view arrays
+        $moRefs = @()
+        foreach ($ds in $Datastores) {
+            $moRefs += $ds.ExtensionData.MoRef
+        }
+        foreach ($DsView in $DatastoreViews) {
+            $moRefs += $DsView.MoRef
+        }
+
+        $task = $api.Protection.CreateAbrProtectionGroup($Folder.MoRef, $Name, $Description, $moRefs)
+    } else {
+        throw "Undetermined protection group type"
+    }
+
+    # TODO Question: return task or wait to complete?
+
+    return $task
+}
+
+
+<#
+.SYNOPSIS
+Delete a protection group
+
+.PARAMETER ProtectionGroup
+The protection group to remove
+
+.PARAMETER SrmServer
+The SRM Server to perform the operation against
+#>
+Function Remove-ProtectionGroup {
+    [cmdletbinding(SupportsShouldProcess=$True, ConfirmImpact="High")]
+    [OutputType([VMware.VimAutomation.Srm.Views.RemoveProtectionGroupTask])]
+    Param(
+        [Parameter (Mandatory=$true, ValueFromPipeline=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup,
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
+    )
+
+    $api = Get-ServerApiEndpoint $SrmServer
+    [VMware.VimAutomation.Srm.Views.RemoveProtectionGroupTask] $task = $null
+
+    $pginfo = $ProtectionGroup.GetInfo()
+    if ($pscmdlet.ShouldProcess($pginfo.Name, "Remove")) {
+        $task = $api.Protection.RemoveProtectionGroup($ProtectionGroup.MoRef)
+    }
+
+    return $task
+}
