@@ -16,8 +16,8 @@ Function Select_UniqueByMoRef {
     )
     process {
         $moref = New-Object System.Collections.ArrayList
-        $in | sort | Select-Object MoRef -Unique | %{ $moref.Add($_.MoRef) } > $null
-        $in | %{
+        $in | sort | Select-Object MoRef -Unique | ForEach-Object { $moref.Add($_.MoRef) } > $null
+        $in | ForEach-Object {
             if ($_.MoRef -in $moref) {
                 $moref.Remove($_.MoRef)
                 $_ #output
@@ -69,7 +69,7 @@ Function Get-Server {
         $found = $SrmServer
     } elseif ($SrmServerAddress) {
         # search for server address in default servers
-        $global:DefaultSrmServers | %{
+        $global:DefaultSrmServers | ForEach-Object {
             if ($_.Name -ieq $SrmServerAddress) {
                 $found = $_
             }

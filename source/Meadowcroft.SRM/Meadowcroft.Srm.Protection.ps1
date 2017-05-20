@@ -43,7 +43,7 @@ Function Get-ProtectionGroup {
         }
     }
     end {
-        $pgs | % {
+        $pgs | ForEach-Object {
             $pgi = $_.GetInfo()
             $selected = (-not $Name -or ($Name -eq $pgi.Name)) -and (-not $Type -or ($Type -eq $pgi.Type))
             if ($selected) {
@@ -86,9 +86,9 @@ Function Get-ProtectedVM {
     if ($null -eq $ProtectionGroup) {
         $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
     }
-    $ProtectionGroup | % {
+    $ProtectionGroup | ForEach-Object {
         $pg = $_
-        $pg.ListProtectedVms() | % {
+        $pg.ListProtectedVms() | ForEach-Object {
             # try and update the view data for the protected VM
             try {
                 $_.Vm.UpdateViewData()
@@ -132,7 +132,7 @@ Function Get-UnProtectedVM {
     $associatedVMs = @()
     $protectedVmRefs = @()
 
-    $ProtectionGroup | % {
+    $ProtectionGroup | ForEach-Object {
         $pg = $_
         # For VR listAssociatedVms to get list of VMs
         if ($pg.GetInfo().Type -eq 'vr') {
@@ -141,14 +141,14 @@ Function Get-UnProtectedVM {
         # TODO test this: For ABR get VMs on GetProtectedDatastore
         if ($pg.GetInfo().Type -eq 'san') {
             $pds = @(Get-ProtectedDatastore -ProtectionGroup $pg)
-            $pds | % {
+            $pds | ForEach-Object {
                 $ds = Get-Datastore -id $_.MoRef
                 $associatedVMs += @(Get-VM -Datastore $ds)
             }
         }
 
         # get protected VMs
-        $protectedVmRefs += @(Get-ProtectedVM -ProtectionGroup $pg | %{ $_.Vm.MoRef } | Select-Object -Unique)
+        $protectedVmRefs += @(Get-ProtectedVM -ProtectionGroup $pg | ForEach-Object { $_.Vm.MoRef } | Select-Object -Unique)
     }
 
     # get associated but unprotected VMs
@@ -177,7 +177,7 @@ Function Get-ProtectedDatastore {
     if (-not $ProtectionGroup) {
         $ProtectionGroup = Get-ProtectionGroup -Name $ProtectionGroupName -RecoveryPlan $RecoveryPlan -SrmServer $SrmServer
     }
-    $ProtectionGroup | % {
+    $ProtectionGroup | ForEach-Object {
         $pg = $_
         if ($pg.GetInfo().Type -eq 'san') { # only supported for array based replication datastores
             $pg.ListProtectedDatastores()

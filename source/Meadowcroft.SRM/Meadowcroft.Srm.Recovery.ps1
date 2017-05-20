@@ -34,7 +34,7 @@ Function Get-RecoveryPlan {
         }
     }
     end {
-        $rps | % {
+        $rps | ForEach-Object {
             $rpi = $_.GetInfo()
             $selected = (-not $Name -or ($Name -eq $rpi.Name))
             if ($selected) {
@@ -456,7 +456,7 @@ Function New-RecoveryPlan {
         $Folder = Get-RecoveryPlanFolder -SrmServer $SrmServer
     }
 
-    $protectionGroupmRefs += @( $ProtectionGroups | %{ $_.MoRef } | Select-Object -Unique)
+    $protectionGroupmRefs += @( $ProtectionGroups | ForEach-Object { $_.MoRef } | Select-Object -Unique)
 
     [VMware.VimAutomation.Srm.Views.CreateRecoveryPlanTask] $task = $null
     
