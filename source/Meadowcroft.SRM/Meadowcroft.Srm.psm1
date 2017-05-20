@@ -16,7 +16,7 @@ Function Select_UniqueByMoRef {
     )
     process {
         $moref = New-Object System.Collections.ArrayList
-        $in | sort | select MoRef -Unique | %{ $moref.Add($_.MoRef) } > $null
+        $in | sort | Select-Object MoRef -Unique | %{ $moref.Add($_.MoRef) } > $null
         $in | %{
             if ($_.MoRef -in $moref) {
                 $moref.Remove($_.MoRef)

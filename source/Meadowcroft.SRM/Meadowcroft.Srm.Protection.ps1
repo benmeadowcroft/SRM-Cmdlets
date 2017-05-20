@@ -148,7 +148,7 @@ Function Get-UnProtectedVM {
         }
 
         # get protected VMs
-        $protectedVmRefs += @(Get-ProtectedVM -ProtectionGroup $pg | %{ $_.Vm.MoRef } | Select -Unique)
+        $protectedVmRefs += @(Get-ProtectedVM -ProtectionGroup $pg | %{ $_.Vm.MoRef } | Select-Object -Unique)
     }
 
     # get associated but unprotected VMs

@@ -456,7 +456,7 @@ Function New-RecoveryPlan {
         $Folder = Get-RecoveryPlanFolder -SrmServer $SrmServer
     }
 
-    $protectionGroupmRefs += @( $ProtectionGroups | %{ $_.MoRef } | Select -Unique)
+    $protectionGroupmRefs += @( $ProtectionGroups | %{ $_.MoRef } | Select-Object -Unique)
 
     [VMware.VimAutomation.Srm.Views.CreateRecoveryPlanTask] $task = $null
     
