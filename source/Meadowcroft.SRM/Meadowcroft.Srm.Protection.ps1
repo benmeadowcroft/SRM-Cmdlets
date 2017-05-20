@@ -232,7 +232,7 @@ Function Protect-VM {
         $protectionSpec = New-Object VMware.VimAutomation.Srm.Views.SrmProtectionGroupVmProtectionSpec
         $protectionSpec.Vm = $moRef
         $protectTask = $ProtectionGroup.ProtectVms($protectionSpec)
-        while(-not $protectTask.IsComplete()) { sleep -Seconds 1 }
+        while(-not $protectTask.IsComplete()) { Start-Sleep -Seconds 1 }
         $protectTask.GetResult()
     } else {
         throw "Can't protect the VM, no MoRef found."
@@ -263,7 +263,7 @@ Function Unprotect-VM {
 
     $pgi = $ProtectionGroup.GetInfo()
     $protectTask = $ProtectionGroup.UnprotectVms($moRef)
-    while(-not $protectTask.IsComplete()) { sleep -Seconds 1 }
+    while(-not $protectTask.IsComplete()) { Start-Sleep -Seconds 1 }
     if ($pgi.Type -eq 'vr') {
         $ProtectionGroup.UnassociateVms(@($moRef))
     }
@@ -322,7 +322,7 @@ The SRM Server to perform the operation against
 #>
 Function New-ProtectionGroup {
     [cmdletbinding(DefaultParameterSetName="VR", SupportsShouldProcess=$True, ConfirmImpact="Medium")]
-    [OutputType([VMware.VimAutomation.Srm.Views.SrmCreateProtectionGroupTask])]
+    [OutputType([VMware.VimAutomation.Srm.Views.SrmProtectionGroup])]
     Param(
         [Parameter (Mandatory=$true)] $Name,
         $Description,
@@ -376,9 +376,17 @@ Function New-ProtectionGroup {
         throw "Undetermined protection group type"
     }
 
-    # TODO Question: return task or wait to complete?
+    # Complete task
+    while(-not $task.IsCreateProtectionGroupComplete()) { Start-Sleep -Seconds 1 }
 
-    return $task
+    # Retrieve the protection group, and protect associated VMs
+    $pg = $task.GetNewProtectionGroup()
+    if ($pg) {
+        $unProtectedVMs = Get-UnProtectedVM -ProtectionGroup $pg
+        $unProtectedVMs | Protect-VM -ProtectionGroup $pg
+    }      
+
+    return $pg
 }
 
 
