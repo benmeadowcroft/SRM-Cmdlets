@@ -470,7 +470,7 @@ Function New-RecoveryPlan {
         )
     }
 
-    while(-not $task.IsCreateRecoveryPlanComplete()) { sleep -Seconds 1 }
+    while(-not $task.IsCreateRecoveryPlanComplete()) { Start-Sleep -Seconds 1 }
 
     $task.GetNewRecoveryPlan()
 }
