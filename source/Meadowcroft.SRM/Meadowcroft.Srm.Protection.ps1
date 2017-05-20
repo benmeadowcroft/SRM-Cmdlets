@@ -152,7 +152,7 @@ Function Get-UnProtectedVM {
     }
 
     # get associated but unprotected VMs
-    $associatedVMs | where { $protectedVmRefs -notcontains $_.ExtensionData.MoRef }
+    $associatedVMs | Where-Object { $protectedVmRefs -notcontains $_.ExtensionData.MoRef }
 }
 
 

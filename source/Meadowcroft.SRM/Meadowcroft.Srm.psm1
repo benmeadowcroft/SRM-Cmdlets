@@ -123,7 +123,7 @@ Get the placeholder VMs that are associated with SRM
 Function Get-PlaceholderVM {
     [cmdletbinding()]
     Param()
-    Get-VM @Args | where {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -ieq 'placeholderVm'}
+    Get-VM @Args | Where-Object {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -ieq 'placeholderVm'}
 }
 
 <#
@@ -133,7 +133,7 @@ Get the test VMs that are associated with SRM
 Function Get-TestVM {
     [cmdletbinding()]
     Param()
-    Get-VM @Args | where {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -ieq 'testVm'}
+    Get-VM @Args | Where-Object {$_.ExtensionData.Config.ManagedBy.extensionKey -like "com.vmware.vcDr*" -and $_.ExtensionData.Config.ManagedBy.Type -ieq 'testVm'}
 }
 
 <#
@@ -144,5 +144,5 @@ protected VMs.
 Function Get-ReplicatedVM {
     [cmdletbinding()]
     Param()
-    Get-VM @Args | where {($_.ExtensionData.Config.ExtraConfig | where { $_.Key -eq 'hbr_filter.destination' -and $_.Value } )}
+    Get-VM @Args | Where-Object {($_.ExtensionData.Config.ExtraConfig | Where-Object { $_.Key -eq 'hbr_filter.destination' -and $_.Value } )}
 }
