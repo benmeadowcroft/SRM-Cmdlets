@@ -1,6 +1,6 @@
 # SRM-Cmdlets
 
-Helper functions for working with SRM and PowerCLI 5.5R2 or later. PowerShell 3.0 and above is required.
+Helper functions for working with VMware SRM 6.5 with PowerCLI 6.5.1 or later. PowerShell 5.0 and above is required. For support of earlier SRM and PowerCLI versions are available in version 0.1. 
 
 These are provided for illustrative/educational purposes.
 
@@ -20,8 +20,8 @@ Or:
 ### Deploy SRM-Cmdlets module
 
  - Take `Srm-Cmdlets.zip` and extract the contents into the powershell module path. See [Microsoft's Installing Modules instructions](http://msdn.microsoft.com/en-us/library/dd878350) for more details.
- - Open PowerCLI 5.5 R2 or 5.8 R1 prompt
- - Verify You are running with PowerShell v3 or later
+ - Open PowerCLI 6.5.1 prompt
+ - Verify You are running with PowerShell v5.0 or later
 
         $PSVersionTable.PSVersion
 
@@ -33,7 +33,7 @@ The module uses the default prefix of `Srm` for the custom functions it defines.
 
 ### Connecting to SRM
 
-Now let's connect to the SRM server. Details of how to do this are located in the [PowerCLI 5.5 R2 User's Guide](http://pubs.vmware.com/vsphere-55/topic/com.vmware.powercli.ug.doc/GUID-A5F206CF-264D-4565-8CB9-4ED1C337053F.html)
+Now let's connect to the SRM server. Details of how to do this are located in the [PowerCLI 6.5.1 User's Guide](http://pubs.vmware.com/vsphere-65/topic/com.vmware.powercli.ug.doc/GUID-A5F206CF-264D-4565-8CB9-4ED1C337053F.html)
 
     $credential = Get-Credential
     Connect-VIServer -Server vc-a.example.com -Credential $credential
