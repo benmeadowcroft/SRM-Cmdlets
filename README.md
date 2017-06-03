@@ -1,9 +1,8 @@
 # SRM-Cmdlets
 
-Helper functions for working with VMware SRM 6.5 with PowerCLI 6.5.1 or later. PowerShell 5.0 and above is required. For support of earlier SRM and PowerCLI versions are available in version 0.1. 
+Helper functions for working with VMware SRM 6.5 with PowerCLI 6.5.1 or later. PowerShell 5.0 and above is required.
 
-These are provided for illustrative/educational purposes.
-
+This module is provided for illustrative/educational purposes to explain how the PowerCLI access to the SRM public API can be used.
 
 ## Getting Started
 
@@ -23,7 +22,7 @@ After cloning (or downloading and extracting) the PowerShell module, you can imp
 
     Import-Module -Name .\SRM-Cmdlets\Meadowcroft.Srm.psd1
 
-You can also install the module into the PowerShell path so it can be loaded automatically. See [Microsoft's Installing Modules instructions](http://msdn.microsoft.com/en-us/library/dd878350) for more details on how to do this.
+You can also install the module into the PowerShell path so it can be loaded implicitly. See [Microsoft's Installing Modules instructions](http://msdn.microsoft.com/en-us/library/dd878350) for more details on how to do this.
 
 The module uses the default prefix of `Srm` for the custom functions it defines. This can be overridden when importing the module by setting the value of the `-Prefix` parameter when calling `Import-Module`.
 
