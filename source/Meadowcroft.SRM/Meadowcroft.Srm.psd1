@@ -17,10 +17,10 @@ GUID = 'f9247009-9168-4a21-831b-819f82884ffe'
 Author = 'Ben Meadowcroft'
 
 # Company or vendor of this module
-CompanyName = ''
+CompanyName = 'VMware, Inc'
 
 # Copyright statement for this module
-Copyright = '(c) 2017. All rights reserved.'
+Copyright = '(c) 2014 - 2017. All rights reserved.'
 
 # Description of the functionality provided by this module
 # Description = ''
