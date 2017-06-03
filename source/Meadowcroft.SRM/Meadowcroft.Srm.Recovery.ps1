@@ -35,10 +35,12 @@ Function Get-RecoveryPlan {
     }
     end {
         $rps | ForEach-Object {
-            $rpi = $_.GetInfo()
+            $rp = $_
+            $rpi = $rp.GetInfo()
             $selected = (-not $Name -or ($Name -eq $rpi.Name))
             if ($selected) {
-                $_
+                Add-Member -InputObject $rp -MemberType NoteProperty -Name "Name" -Value $rpi.Name
+                $rp
             }
         }
     }

@@ -44,10 +44,12 @@ Function Get-ProtectionGroup {
     }
     end {
         $pgs | ForEach-Object {
-            $pgi = $_.GetInfo()
+            $pg = $_
+            $pgi = $pg.GetInfo()
             $selected = (-not $Name -or ($Name -eq $pgi.Name)) -and (-not $Type -or ($Type -eq $pgi.Type))
             if ($selected) {
-                $_
+                Add-Member -InputObject $pg -MemberType NoteProperty -Name "Name" -Value $pgi.Name 
+                $pg
             }
         }
     }
