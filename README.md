@@ -7,19 +7,18 @@ These are provided for illustrative/educational purposes.
 
 ## Getting Started
 
-### Build or Download SRM-Cmdlets.zip
+### Getting the SRM cmdlets
 
-Either:
+The latest version of the software can be downloaded as a zip file, or cloned from the git repository:
 
- - Download the `SRM-Cmdlets.zip` file from http://www.benmeadowcroft.com/projects/srm-cmdlets-for-powercli/
+   git clone https://github.com/benmeadowcroft/SRM-Cmdlets.git
 
-Or:
 
- - Build `SRM-Cmdlets.zip` file by checking out the project and running build.ps1 from the projects root directory. This will create the distributable zip file in the dist directory.
+Specific releases (compatible with earlier PowerCLI and SRM versions) can be accessed via the [release page](https://github.com/benmeadowcroft/SRM-Cmdlets/releases).
 
 ### Deploy SRM-Cmdlets module
 
- - Take `Srm-Cmdlets.zip` and extract the contents into the powershell module path. See [Microsoft's Installing Modules instructions](http://msdn.microsoft.com/en-us/library/dd878350) for more details.
+ - Take the zip file and extract the contents into the powershell module path. See [Microsoft's Installing Modules instructions](http://msdn.microsoft.com/en-us/library/dd878350) for more details on how to install the module permanently.
  - Open PowerCLI 6.5.1 prompt
  - Verify You are running with PowerShell v5.0 or later
 
