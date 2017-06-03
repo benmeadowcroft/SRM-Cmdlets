@@ -172,7 +172,7 @@ The recovery plan the protection group will be associated with
 .PARAMETER ProtectionGroup
 The protection group to associate with the recovery plan
 #>
-Function Add-ProtectionGroup {
+Function Add-ProtectionGroupToRecoveryPlan {
     [cmdletbinding()]
     Param(
         [Parameter (Mandatory=$true, Position=1)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
@@ -183,6 +183,34 @@ Function Add-ProtectionGroup {
         foreach ($pg in $ProtectionGroup) {
             try {
                 $RecoveryPlan.AddProtectionGroup($pg.MoRef)
+            } catch {
+                Write-Error $_
+            }
+        }
+    }
+}
+
+<#
+.SYNOPSIS
+Remove a protection group to a recovery plan. This requires SRM 6.5 or later.
+
+.PARAMETER RecoveryPlan
+The recovery plan the protection group will be disassociated from
+
+.PARAMETER ProtectionGroup
+The protection group to disassociate from the recovery plan
+#>
+Function Remove-ProtectionGroupFromRecoveryPlan {
+    [cmdletbinding()]
+    Param(
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmRecoveryPlan] $RecoveryPlan,
+        [Parameter (Mandatory=$true)][VMware.VimAutomation.Srm.Views.SrmProtectionGroup] $ProtectionGroup
+    )
+
+    if ($RecoveryPlan -and $ProtectionGroup) {
+        foreach ($pg in $ProtectionGroup) {
+            try {
+                $RecoveryPlan.RemoveProtectionGroupFromRecoveryPlan($pg.MoRef)
             } catch {
                 Write-Error $_
             }
