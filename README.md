@@ -1,39 +1,34 @@
 # SRM-Cmdlets
 
-Helper functions for working with SRM and PowerCLI 5.5R2 or later. PowerShell 3.0 and above is required.
+Helper functions for working with VMware SRM 6.5 with PowerCLI 6.5.1 or later. PowerShell 5.0 and above is required.
 
-These are provided for illustrative/educational purposes.
-
+This module is provided for illustrative/educational purposes to explain how the PowerCLI access to the SRM public API can be used.
 
 ## Getting Started
 
-### Build or Download SRM-Cmdlets.zip
+### Getting the SRM cmdlets
 
-Either:
+The latest version of the software can be cloned from the git repository:
 
- - Download the `SRM-Cmdlets.zip` file from http://www.benmeadowcroft.com/projects/srm-cmdlets-for-powercli/
+   git clone https://github.com/benmeadowcroft/SRM-Cmdlets.git
 
-Or:
+Or downloaded as a [zip file](https://github.com/benmeadowcroft/SRM-Cmdlets/archive/master.zip).
 
- - Build `SRM-Cmdlets.zip` file by checking out the project and running build.ps1 from the projects root directory. This will create the distributable zip file in the dist directory.
+Specific releases (compatible with earlier PowerCLI and SRM versions) can be downloaded via the [release page](https://github.com/benmeadowcroft/SRM-Cmdlets/releases).
 
 ### Deploy SRM-Cmdlets module
 
- - Take `Srm-Cmdlets.zip` and extract the contents into the powershell module path. See [Microsoft's Installing Modules instructions](http://msdn.microsoft.com/en-us/library/dd878350) for more details.
- - Open PowerCLI 5.5 R2 or 5.8 R1 prompt
- - Verify You are running with PowerShell v3 or later
+After cloning (or downloading and extracting) the PowerShell module, you can import the module into your current PowerShell session by by passing the path to `Meadowcroft.Srm.psd1` to the `Import-Module` cmdlet, e.g.:
 
-        $PSVersionTable.PSVersion
+    Import-Module -Name .\SRM-Cmdlets\Meadowcroft.Srm.psd1
 
- - Import the SRM-Cmdlets module
+You can also install the module into the PowerShell path so it can be loaded implicitly. See [Microsoft's Installing Modules instructions](http://msdn.microsoft.com/en-us/library/dd878350) for more details on how to do this.
 
-        Import-Module Meadowcroft.SRM
-
-The module uses the default prefix of `Srm` for the custom functions it defines. This can be overridden when importing the module by setting the value of the `-Prefix` parameter to something else when calling `Import-Module`.
+The module uses the default prefix of `Srm` for the custom functions it defines. This can be overridden when importing the module by setting the value of the `-Prefix` parameter when calling `Import-Module`.
 
 ### Connecting to SRM
 
-Now let's connect to the SRM server. Details of how to do this are located in the [PowerCLI 5.5 R2 User's Guide](http://pubs.vmware.com/vsphere-55/topic/com.vmware.powercli.ug.doc/GUID-A5F206CF-264D-4565-8CB9-4ED1C337053F.html)
+After installing the module the next step is to connect to the SRM server. Details of how to do this are located in the [PowerCLI 6.5.1 User's Guide](http://pubs.vmware.com/vsphere-65/topic/com.vmware.powercli.ug.doc/GUID-A5F206CF-264D-4565-8CB9-4ED1C337053F.html)
 
     $credential = Get-Credential
     Connect-VIServer -Server vc-a.example.com -Credential $credential
@@ -76,7 +71,7 @@ Goal: for a specific recovery plan, execute a test failover. Note the "local" SR
 Goal: get the XML report of the last recovery plan execution for a specific recovery plan.
 
     Get-SrmRecoveryPlan -Name "Name of Plan" | Get-SrmRecoveryPlanResult |
-        select -First 1 | Export-RecoveryPlanResultAsXml
+        select -First 1 | Export-SrmRecoveryPlanResultAsXml
 
 ### Protect a Replicated VM
 

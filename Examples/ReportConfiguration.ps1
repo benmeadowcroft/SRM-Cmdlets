@@ -3,7 +3,7 @@
 
 Function Get-SrmConfigReportSite {
     Param(
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     Get-SrmServer $SrmServer |
@@ -17,7 +17,7 @@ Function Get-SrmConfigReportSite {
 
 Function Get-SrmConfigReportPlan {
     Param(
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     Get-SrmRecoveryPlan -SrmServer $SrmServer | %{
@@ -47,7 +47,7 @@ Function Get-SrmConfigReportPlan {
 
 Function Get-SrmConfigReportProtectionGroup {
     Param(
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     Get-SrmProtectionGroup -SrmServer $SrmServer | %{
@@ -80,7 +80,7 @@ Function Get-SrmConfigReportProtectionGroup {
 
 Function Get-SrmConfigReportProtectedDatastore {
     Param(
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     Get-SrmProtectionGroup -SrmServer $SrmServer -Type "san" | %{
@@ -108,7 +108,7 @@ Function Get-SrmConfigReportProtectedDatastore {
 
 Function Get-SrmConfigReportProtectedVm {
     Param(
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     $srmversion = Get-SrmServerVersion -SrmServer $SrmServer
@@ -156,7 +156,7 @@ Function Get-SrmConfigReportProtectedVm {
 
 Function Get-SrmConfigReport {
     Param(
-        [VMware.VimAutomation.ViCore.Types.V1.Srm.SrmServer] $SrmServer
+        [VMware.VimAutomation.Srm.Types.V1.SrmServer] $SrmServer
     )
 
     Get-SrmConfigReportSite -SrmServer $SrmServer
