@@ -1,4 +1,4 @@
-# SRM-Cmdlets
+# SRM PowerCLI Cmdlets
 
 Helper functions for working with VMware SRM 6.5 with PowerCLI 6.5.1 or later. PowerShell 5.0 and above is required.
 
