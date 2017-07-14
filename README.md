@@ -10,7 +10,7 @@ This module is provided for illustrative/educational purposes to explain how the
 
 The latest version of the software can be cloned from the git repository:
 
-   git clone https://github.com/benmeadowcroft/SRM-Cmdlets.git
+    git clone https://github.com/benmeadowcroft/SRM-Cmdlets.git
 
 Or downloaded as a [zip file](https://github.com/benmeadowcroft/SRM-Cmdlets/archive/master.zip).
 
