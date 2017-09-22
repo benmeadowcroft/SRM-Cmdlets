@@ -54,7 +54,7 @@ Start a Recovery Plan action like test, recovery, cleanup, etc.
 The recovery plan to start
 
 .PARAMETER RecoveryMode
-The recovery mode to invoke on the plan. May be one of "Test", "Cleanup", "Failover", "Reprotect"
+The recovery mode to invoke on the plan. May be one of "Test", "Cleanup", "Failover", "Migrate", "Reprotect"
 #>
 Function Start-RecoveryPlan {
     [cmdletbinding(SupportsShouldProcess=$True, ConfirmImpact="High")]
