@@ -144,7 +144,7 @@ Function Get-UnProtectedVM {
         if ($pg.GetInfo().Type -eq 'san') {
             $pds = @(Get-ProtectedDatastore -ProtectionGroup $pg)
             $pds | ForEach-Object {
-                $ds = Get-Datastore -id $_.MoRef
+                $ds = $_
                 $associatedVMs += @(Get-VM -Datastore $ds | Where-Object {$_.extensiondata.config.files.vmpathname -like "*$($ds.name)*"})
             }
         }
@@ -182,7 +182,7 @@ Function Get-ProtectedDatastore {
     $ProtectionGroup | ForEach-Object {
         $pg = $_
         if ($pg.GetInfo().Type -eq 'san') { # only supported for array based replication datastores
-            $pg.ListProtectedDatastores()
+            $pg.ListProtectedDatastores() | ForEach-Object {Get-Datastore -Id $_.moref}
         }
     }
 }
