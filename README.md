@@ -1,3 +1,7 @@
+# Archive Notice
+
+Thie repository is now archived. The SRM Public API has evolved significantly and I am no longer involved with the SRM product and unable to keep it up to date or validate any changes.
+
 # SRM PowerCLI Cmdlets
 
 Helper functions for working with VMware SRM 6.5 with PowerCLI 6.5.1 or later. PowerShell 5.0 and above is required.
