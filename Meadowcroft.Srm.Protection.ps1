@@ -48,7 +48,7 @@ Function Get-ProtectionGroup {
             $pgi = $pg.GetInfo()
             $selected = (-not $Name -or ($Name -eq $pgi.Name)) -and (-not $Type -or ($Type -eq $pgi.Type))
             if ($selected) {
-                Add-Member -InputObject $pg -MemberType NoteProperty -Name "Name" -Value $pgi.Name 
+                Add-Member -InputObject $pg -MemberType NoteProperty -Name "Name" -Value $pgi.Name
                 $pg
             }
         }
@@ -95,7 +95,7 @@ Function Get-ProtectedVM {
             try {
                 $_.Vm.UpdateViewData()
             } catch {
-                Write-Error $_            
+                Write-Error $_
             } finally {
                 $_
             }
@@ -145,7 +145,7 @@ Function Get-UnProtectedVM {
             $pds = @(Get-ProtectedDatastore -ProtectionGroup $pg)
             $pds | ForEach-Object {
                 $ds = Get-Datastore -id $_.MoRef
-                $associatedVMs += @(Get-VM -Datastore $ds)
+                $associatedVMs += @(Get-VM -Datastore $ds | Where-Object {$_.extensiondata.config.files.vmpathname -like "*$($ds.name)*"})
             }
         }
 
@@ -359,7 +359,7 @@ Function New-ProtectionGroup {
         if ($pscmdlet.ShouldProcess($Name, "New")) {
             $task = $api.Protection.CreateHbrProtectionGroup($Folder.MoRef, $Name, $Description, $moRefs)
         }
-        
+
     } elseif ($ArrayReplication) {
         #create list of managed object references from VM and/or VM view arrays
         $moRefs = @()
@@ -373,7 +373,7 @@ Function New-ProtectionGroup {
         if ($pscmdlet.ShouldProcess($Name, "New")) {
             $task = $api.Protection.CreateAbrProtectionGroup($Folder.MoRef, $Name, $Description, $moRefs)
         }
-        
+
     } else {
         throw "Undetermined protection group type"
     }
@@ -386,7 +386,7 @@ Function New-ProtectionGroup {
     if ($pg) {
         $unProtectedVMs = Get-UnProtectedVM -ProtectionGroup $pg
         $unProtectedVMs | Protect-VM -ProtectionGroup $pg
-    }      
+    }
 
     return $pg
 }
